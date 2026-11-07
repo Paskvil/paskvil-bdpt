@@ -39,8 +39,8 @@ export class PathTracer implements Integrator {
     let throughput = Color.WHITE
     let countEmitted = true
 
-    // `depth` = bounces so far; light emitted at this hit has bounced `depth` times on its way to
-    // the camera, light sampled by NEE here will have bounced `depth + 1` times
+    // `depth` = bounces so far: light emitted at this hit has bounced `depth` times on its
+    // way to the camera, light sampled by NEE here will have bounced `depth + 1` times
     for (let depth = 0; depth <= this.options.maxDepth; depth++) {
       const hit = this.scene.intersect(ray)
       if (!hit) break

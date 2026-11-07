@@ -44,16 +44,17 @@ export class Bdpt implements Integrator {
   ) {}
 
   renderSample(x: number, y: number, sink: SampleSink, random: Random): void {
+    const { scene } = this
     const { maxDepth, heuristic, only } = this.options
     // a path with `maxDepth` bounces has `maxDepth + 2` vertices, camera and light included
     const cameraPath = generateCameraSubpath(
-      this.scene,
+      scene,
       x + random.next(),
       y + random.next(),
       maxDepth + 2,
       random,
     )
-    const lightPath = generateLightSubpath(this.scene, maxDepth + 1, random)
+    const lightPath = generateLightSubpath(scene, maxDepth + 1, random)
 
     let radiance = Color.BLACK
     for (let t = 1; t <= cameraPath.length; t++) {
@@ -62,7 +63,7 @@ export class Bdpt implements Integrator {
         if (bounces < 0 || bounces > maxDepth || (s === 1 && t === 1)) continue
         if (only && (s !== only.s || t !== only.t)) continue
 
-        const contribution = connect(this.scene, lightPath, cameraPath, s, t, heuristic, random)
+        const contribution = connect(scene, lightPath, cameraPath, s, t, heuristic, random)
         if (!contribution) continue
 
         const weight = only && !only.weighted ? 1 : contribution.misWeight
