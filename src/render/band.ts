@@ -2,6 +2,7 @@ import type { SampleSink } from '../film/sample-sink'
 import type { Integrator } from '../integrators/integrator'
 import type { Color } from '../math/color'
 import { Sfc32 } from '../rng/random'
+import type { Scene } from '../scene/scene'
 
 /** a unit of work: one sample for every pixel of a few consecutive rows, in a given pass */
 export interface BandJob {
@@ -20,6 +21,7 @@ export interface BandJob {
 export class BandBuffer implements SampleSink {
   readonly sums: Float32Array
   private readonly splats: number[] = []
+  raysCast = 0
 
   constructor(
     readonly width: number,
@@ -45,14 +47,21 @@ export class BandBuffer implements SampleSink {
   }
 }
 
-export function renderBand(integrator: Integrator, width: number, job: BandJob): BandBuffer {
+export function renderBand(
+  scene: Scene,
+  integrator: Integrator,
+  width: number,
+  job: BandJob,
+): BandBuffer {
   const buffer = new BandBuffer(width, job)
+  const raysBefore = scene.raysCast
   for (let y = job.firstRow; y < job.firstRow + job.rowCount; y++) {
     const random = new Sfc32(rowSeed(job.pass, y))
     for (let x = 0; x < width; x++) {
       integrator.renderSample(x, y, buffer, random)
     }
   }
+  buffer.raysCast = scene.raysCast - raysBefore
   return buffer
 }
 

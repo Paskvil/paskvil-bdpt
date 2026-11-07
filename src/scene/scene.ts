@@ -26,6 +26,8 @@ export interface Hit {
  */
 export class Scene {
   readonly lights: readonly AreaLight[]
+  /** every ray tested against the scene so far, shadow rays included - for the stats */
+  raysCast = 0
 
   constructor(
     readonly objects: readonly SceneObject[],
@@ -46,6 +48,7 @@ export class Scene {
   }
 
   intersect(ray: Ray, maxDistance = Infinity): Hit | null {
+    this.raysCast++
     let nearest: { distance: number; object: SceneObject } | null = null
     for (const object of this.objects) {
       const distance = object.shape.intersect(ray, nearest?.distance ?? maxDistance)
@@ -59,6 +62,7 @@ export class Scene {
 
   /** true when nothing blocks the ray before `distance` - shadow rays */
   isUnoccluded(ray: Ray, distance: number): boolean {
+    this.raysCast++
     return this.objects.every((object) => object.shape.intersect(ray, distance) === null)
   }
 }

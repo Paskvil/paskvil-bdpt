@@ -1,0 +1,99 @@
+import type { RenderStats } from '../render/parallel-renderer'
+import type { DemoControls } from './demo-controls'
+
+export interface Stat {
+  /** short label shown on the render - "SPP" */
+  label: string
+  value: string
+  /** shown on hover */
+  description: string
+}
+
+/** the stats shown on the render and in the PNG strip, in display order */
+export function formatStats(stats: RenderStats, controls: DemoControls): Stat[] {
+  const seconds = stats.renderTimeMs / 1000
+  const list: Stat[] = [
+    {
+      label: 'SPP',
+      value: stats.samplesPerPixel.toFixed(1),
+      description: 'samples per pixel - camera paths averaged into each pixel so far',
+    },
+    {
+      label: 'RAYS',
+      value: compact(stats.raysCast),
+      description: 'rays cast - every ray tested against the scene, shadow rays included',
+    },
+    {
+      label: 'R/S',
+      value: compact(seconds > 0 ? stats.raysCast / seconds : 0),
+      description: 'rays per second - over all workers',
+    },
+    {
+      label: 'TIME',
+      value: duration(seconds),
+      description: 'render time - since the last change, not counting pauses',
+    },
+  ]
+  if (controls.integrator === 'bdpt') {
+    list.push({
+      label: 'LP',
+      value: compact(stats.sampleCount),
+      description: 'light paths - traced from the lights, one for every camera sample',
+    })
+  }
+  return list
+}
+
+/** the scene and integrator in two short lines - for the PNG strip */
+export function describeSettings(controls: DemoControls): [string, string] {
+  const lights = Object.entries(controls.lights)
+    .filter(([, on]) => on)
+    .map(([name]) => name)
+    .join(' + ')
+  const integrator = controls.integrator === 'bdpt' ? 'bdpt' : 'path tracing'
+  const { left, right } = controls.balls
+  return [`${integrator} · lights ${lights}`, `left ball ${left} · right ball ${right}`]
+}
+
+/** 12.3k, 4.56M, 1.2G */
+function compact(value: number): string {
+  const units: [number, string][] = [
+    [1e9, 'G'],
+    [1e6, 'M'],
+    [1e3, 'k'],
+  ]
+  for (const [size, suffix] of units) {
+    if (value >= size) return `${(value / size).toPrecision(3)}${suffix}`
+  }
+  return String(Math.round(value))
+}
+
+/** m:ss */
+function duration(seconds: number): string {
+  const whole = Math.floor(seconds)
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`
+}
+
+/**
+ * shows the stats in the overlay's `<dl>` - only the values change between updates, the entries
+ * are rebuilt just when the set of stats does (keeps hover tooltips from flickering)
+ */
+export function showStats(list: HTMLElement, stats: Stat[]): void {
+  const labels = stats.map((stat) => stat.label).join()
+  if (list.dataset.labels !== labels) {
+    list.dataset.labels = labels
+    list.replaceChildren(
+      ...stats.map((stat) => {
+        const entry = document.createElement('div')
+        entry.title = stat.description
+        entry.append(document.createElement('dt'), document.createElement('dd'))
+        return entry
+      }),
+    )
+  }
+  stats.forEach((stat, index) => {
+    const [label, value] = list.children[index].children
+    label.textContent = stat.label
+    value.textContent = stat.value
+  })
+}

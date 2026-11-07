@@ -10,6 +10,18 @@ const BAND_ROWS = 8
 /** jobs queued per worker, so it never sits idle waiting for the next one to arrive */
 const JOBS_PER_WORKER = 2
 
+const MAX_FRAME_GAP_MS = 250
+
+/** progress of the current render - all reset by `configure` */
+export interface RenderStats {
+  samplesPerPixel: number
+  /** camera samples over all pixels = light paths traced (BDPT traces one per sample) */
+  sampleCount: number
+  raysCast: number
+  /** time spent rendering, not counting pauses */
+  renderTimeMs: number
+}
+
 /**
  * progressive rendering on a pool of workers
  *
@@ -30,6 +42,9 @@ export class ParallelRenderer {
   private sampleLimit: number | null = null
   private imageOutdated = false
   private frameRequest: number | null = null
+  private raysCast = 0
+  private renderTimeMs = 0
+  private lastFrameTime: number | null = null
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -50,6 +65,15 @@ export class ParallelRenderer {
     return this.film?.samplesPerPixel() ?? 0
   }
 
+  stats(): RenderStats {
+    return {
+      samplesPerPixel: this.samplesPerPixel,
+      sampleCount: this.film?.sampleCount ?? 0,
+      raysCast: this.raysCast,
+      renderTimeMs: this.renderTimeMs,
+    }
+  }
+
   /** stop after this many samples per pixel - `null` renders on indefinitely */
   setSampleLimit(limit: number | null): void {
     this.sampleLimit = limit
@@ -66,6 +90,8 @@ export class ParallelRenderer {
     if (this.canvas.width !== settings.width) this.canvas.width = settings.width
     if (this.canvas.height !== settings.height) this.canvas.height = settings.height
     this.nextJob = { pass: 0, firstRow: 0, rowCount: BAND_ROWS }
+    this.raysCast = 0
+    this.renderTimeMs = 0
 
     for (const entry of this.workers) {
       entry.jobsInFlight = 0 // the workers skip jobs of older generations without replying
@@ -97,6 +123,7 @@ export class ParallelRenderer {
     entry.jobsInFlight--
     this.film.addBand(message.job.firstRow, message.job.rowCount, message.sums)
     this.film.addSplatList(message.splats)
+    this.raysCast += message.raysCast
     this.imageOutdated = true
     this.dispatchJobs()
   }
@@ -111,6 +138,10 @@ export class ParallelRenderer {
         entry.jobsInFlight++
       }
     }
+  }
+
+  private isBusy(): boolean {
+    return this.workers.some((entry) => entry.jobsInFlight > 0)
   }
 
   private reachedLimit(): boolean {
@@ -131,7 +162,14 @@ export class ParallelRenderer {
     worker.postMessage(message)
   }
 
-  private readonly drawFrame = (): void => {
+  private readonly drawFrame = (now: number): void => {
+    // the clock runs while any worker has work - i.e. not when paused or done; a frame gap is
+    // capped, as frames stop in a hidden tab while the last jobs may still be finishing
+    if (this.lastFrameTime !== null && this.isBusy()) {
+      this.renderTimeMs += Math.min(now - this.lastFrameTime, MAX_FRAME_GAP_MS)
+    }
+    this.lastFrameTime = now
+
     if (this.imageOutdated && this.film && this.image) {
       writeToImageData(this.film, this.image)
       this.context.putImageData(this.image, 0, 0)

@@ -29,7 +29,7 @@ scope.onmessage = ({ data: message }) => {
     case 'render': {
       // stale job, queued before the latest configure - the main thread would drop the result anyway
       if (message.generation !== generation || !setup || !settings) return
-      const band = renderBand(setup.integrator, settings.width, message.job)
+      const band = renderBand(setup.scene, setup.integrator, settings.width, message.job)
       const splats = band.splatList()
       const reply: FromWorker = {
         type: 'band',
@@ -37,6 +37,7 @@ scope.onmessage = ({ data: message }) => {
         job: message.job,
         sums: band.sums,
         splats,
+        raysCast: band.raysCast,
       }
       scope.postMessage(reply, [band.sums.buffer, splats.buffer])
       break

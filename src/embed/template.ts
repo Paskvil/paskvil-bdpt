@@ -9,6 +9,7 @@ export const TEMPLATE = `
   <div class="layout">
     <div class="viewport">
       <canvas width="${RENDER_SIZE}" height="${RENDER_SIZE}"></canvas>
+      <dl class="stats"></dl>
     </div>
     <form class="controls">
       ${choices('lights', 'checkbox', 'light', [
@@ -35,6 +36,10 @@ export const TEMPLATE = `
       <div class="actions">
         <button type="button" name="pause">pause</button>
         <button type="button" name="download">download png</button>
+        <label class="chip">
+          <input type="checkbox" name="png-with-stats" checked />
+          <span>with stats</span>
+        </label>
       </div>
     </form>
   </div>

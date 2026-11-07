@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **milestone 6 in progress** - basic controls done; next: stats overlay, then the advanced section. Sections marked _open_ still need a decision.
+Status: **milestone 6 in progress** - basic controls and stats done; next: the advanced section. Sections marked _open_ still need a decision.
 
 ## goals
 
@@ -91,7 +91,7 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
 5. ~~specular - mirror + glass, caustics scene~~ - done
 6. interface - controls, strategy visualization, PT vs BDPT comparison
    - ~~basic controls (lights, materials, integrator, sample limit, pause, png download, off-screen / hidden-tab pausing)~~ - done
-   - stats overlay + stats strip in the png
+   - ~~stats overlay + stats strip in the png~~ - done
    - advanced section
 7. documentation - outline of the algorithms, references into the code, gotchas (see below)
    - short version in `README.md`

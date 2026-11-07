@@ -64,6 +64,11 @@ export class Film implements SampleSink {
     this.totalSamples += pixelCount
   }
 
+  /** camera samples so far, over all pixels - also the number of light paths (one per sample) */
+  get sampleCount(): number {
+    return this.totalSamples
+  }
+
   /** average number of samples per pixel so far */
   samplesPerPixel(): number {
     return this.totalSamples / this.counts.length

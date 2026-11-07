@@ -13,6 +13,8 @@ export interface DemoControls {
   integrator: IntegratorChoice
   /** samples per pixel to stop at - `null` for no limit */
   sampleLimit: number | null
+  /** add a strip with the settings and stats under the downloaded image */
+  pngWithStats: boolean
 }
 
 const BALL_MATERIALS: readonly BallMaterial[] = ['diffuse', 'mirror', 'glass']
@@ -35,6 +37,7 @@ export function readControls(form: HTMLFormElement): DemoControls {
     },
     integrator: oneOf(data.get('integrator'), INTEGRATORS),
     sampleLimit: limit > 0 ? limit : null,
+    pngWithStats: data.has('png-with-stats'),
   }
 }
 

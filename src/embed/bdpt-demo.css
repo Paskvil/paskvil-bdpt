@@ -134,3 +134,35 @@ button[name='pause'][aria-pressed='true'] {
   border-color: var(--bdpt-accent);
   color: var(--bdpt-accent);
 }
+
+/* stats - over the bottom-right corner of the render */
+
+.stats {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0 0.9rem;
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  background: color-mix(in srgb, var(--bdpt-background) 75%, transparent);
+  font-size: 0.75rem;
+  cursor: help;
+}
+
+.stats div {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.stats dt {
+  color: var(--bdpt-text-dim);
+}
+
+.stats dd {
+  margin: 0;
+  color: var(--bdpt-text-strong);
+  font-variant-numeric: tabular-nums;
+}

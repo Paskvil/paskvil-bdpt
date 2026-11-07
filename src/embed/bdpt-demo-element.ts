@@ -2,8 +2,12 @@ import { ParallelRenderer } from '../render/parallel-renderer'
 import type { RenderSettings } from '../render/settings'
 import styles from './bdpt-demo.css?inline'
 import { readControls, toRenderSettings, type DemoControls } from './demo-controls'
-import { downloadPng, snapshotFilename } from './download'
+import { downloadPng, snapshotFilename, withStrip, type StripStyle } from './download'
+import { describeSettings, formatStats, showStats } from './stats'
 import { TEMPLATE } from './template'
+
+/** how often the stats overlay refreshes */
+const STATS_INTERVAL_MS = 250
 
 /**
  * `<bdpt-demo>` - the embeddable demo: render on the left, controls on the right
@@ -14,12 +18,14 @@ export class BdptDemoElement extends HTMLElement {
   readonly canvas: HTMLCanvasElement
   readonly form: HTMLFormElement
   private readonly pauseButton: HTMLButtonElement
+  private readonly statsList: HTMLElement
   private renderer: ParallelRenderer | null = null
   private controls: DemoControls
   private renderedSettings: RenderSettings | null = null
   private pausedByUser = false
   private onScreen = true
   private visibilityObserver: IntersectionObserver | null = null
+  private statsTimer: ReturnType<typeof setInterval> | null = null
 
   constructor() {
     super()
@@ -32,6 +38,7 @@ export class BdptDemoElement extends HTMLElement {
     this.canvas = requireElement<HTMLCanvasElement>(shadow, 'canvas')
     this.form = requireElement<HTMLFormElement>(shadow, 'form')
     this.pauseButton = requireElement<HTMLButtonElement>(shadow, 'button[name="pause"]')
+    this.statsList = requireElement<HTMLElement>(shadow, '.stats')
     const downloadButton = requireElement<HTMLButtonElement>(shadow, 'button[name="download"]')
 
     this.controls = readControls(this.form)
@@ -50,11 +57,13 @@ export class BdptDemoElement extends HTMLElement {
     })
     this.visibilityObserver.observe(this)
     document.addEventListener('visibilitychange', this.updateRunning)
+    this.statsTimer = setInterval(this.updateStats, STATS_INTERVAL_MS)
   }
 
   disconnectedCallback(): void {
     this.visibilityObserver?.disconnect()
     document.removeEventListener('visibilitychange', this.updateRunning)
+    if (this.statsTimer !== null) clearInterval(this.statsTimer)
     this.renderer?.dispose()
     this.renderer = null
   }
@@ -85,8 +94,35 @@ export class BdptDemoElement extends HTMLElement {
   }
 
   private readonly onDownloadClick = (): void => {
-    const samples = this.renderer?.samplesPerPixel ?? 0
-    downloadPng(this.canvas, snapshotFilename(this.controls.integrator, samples))
+    if (!this.renderer) return
+    const stats = this.renderer.stats()
+    const filename = snapshotFilename(this.controls.integrator, stats.samplesPerPixel)
+    if (!this.controls.pngWithStats) {
+      downloadPng(this.canvas, filename)
+      return
+    }
+
+    const statsLine = formatStats(stats, this.controls)
+      .map((stat) => `${stat.label} ${stat.value}`)
+      .join(' · ')
+    const lines = [...describeSettings(this.controls), statsLine]
+    downloadPng(withStrip(this.canvas, lines, this.stripStyle()), filename)
+  }
+
+  /** the strip under a downloaded PNG uses the element's theme */
+  private stripStyle(): StripStyle {
+    const style = getComputedStyle(this)
+    const token = (name: string) => style.getPropertyValue(`--bdpt-${name}`).trim()
+    return {
+      background: token('background'),
+      text: token('text-strong'),
+      textDim: token('text-dim'),
+      font: token('mono'),
+    }
+  }
+
+  private readonly updateStats = (): void => {
+    if (this.renderer) showStats(this.statsList, formatStats(this.renderer.stats(), this.controls))
   }
 
   private readonly updateRunning = (): void => {

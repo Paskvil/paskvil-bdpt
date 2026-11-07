@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { BdptDemoElement } from './bdpt-demo-element'
 import { readControls, RENDER_SIZE } from './demo-controls'
 import { snapshotFilename } from './download'
+import { showStats } from './stats'
 import '../index'
 
 function createElement(): BdptDemoElement {
@@ -32,6 +33,7 @@ describe('<bdpt-demo>', () => {
       balls: { left: 'diffuse', right: 'diffuse' },
       integrator: 'bdpt',
       sampleLimit: null,
+      pngWithStats: true,
     })
   })
 
@@ -47,6 +49,7 @@ describe('<bdpt-demo>', () => {
       balls: { left: 'diffuse', right: 'glass' },
       integrator: 'path-tracer',
       sampleLimit: 1024,
+      pngWithStats: true,
     })
   })
 
@@ -65,5 +68,20 @@ describe('<bdpt-demo>', () => {
 describe('snapshotFilename', () => {
   it('zero-pads the sample count so snapshots sort', () => {
     expect(snapshotFilename('bdpt', 256.7)).toBe('bdpt-00256spp.png')
+  })
+})
+
+describe('showStats', () => {
+  const stat = (label: string, value: string) => ({ label, value, description: `about ${label}` })
+
+  it('shows each stat with its description on hover, updating values in place', () => {
+    const list = document.createElement('dl')
+    showStats(list, [stat('SPP', '1.0'), stat('RAYS', '10k')])
+    const firstEntry = list.children[0]
+    showStats(list, [stat('SPP', '2.0'), stat('RAYS', '20k')])
+
+    expect(list.children[0]).toBe(firstEntry) // not rebuilt - a tooltip being shown stays
+    expect(firstEntry.getAttribute('title')).toBe('about SPP')
+    expect(list.textContent).toBe('SPP2.0RAYS20k')
   })
 })

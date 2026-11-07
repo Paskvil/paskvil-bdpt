@@ -17,4 +17,5 @@ export interface FromWorker {
   job: BandJob
   sums: Float32Array
   splats: Float32Array
+  raysCast: number
 }
