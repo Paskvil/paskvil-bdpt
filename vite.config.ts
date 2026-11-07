@@ -3,7 +3,8 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   // dev: the demo page lives in demo/, served at /demo/
-  server: { open: '/demo/' },
+  // fixed port - 5173 (the Vite default) is often taken by other projects
+  server: { port: 5180, strictPort: true, open: '/demo/' },
 
   build: {
     lib: {

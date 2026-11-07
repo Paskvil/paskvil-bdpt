@@ -15,7 +15,7 @@ or, as an ES module: `<script type="module" src="bdpt.js"></script>`
 
 ```sh
 npm install
-npm run dev        # demo page at http://localhost:5173/demo/
+npm run dev        # demo page at http://localhost:5180/demo/
 npm test           # vitest
 npm run lint       # eslint
 npm run typecheck  # tsc

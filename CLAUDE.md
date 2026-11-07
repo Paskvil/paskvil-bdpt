@@ -10,7 +10,7 @@ Educational bidirectional path tracing demo, TS, shipped as one embeddable bundl
 
 ## layout / commands
 
-- `src/` library, entry `src/index.ts` (registers the element), `demo/index.html` dev page (served at `/demo/`)
+- `src/` library, entry `src/index.ts` (registers the element), `demo/index.html` dev page (served at `http://localhost:5180/demo/` - port pinned, 5173 is taken by Jo's other projects)
 - `npm run dev | test | lint | typecheck | build` - run test + lint + typecheck before committing
 - tests next to the code as `*.test.ts`; DOM tests opt into jsdom per file (`// @vitest-environment jsdom`), the rest runs in node
 - styles: plain `.css` files imported with `?inline`, applied via `adoptedStyleSheets` in the shadow root
