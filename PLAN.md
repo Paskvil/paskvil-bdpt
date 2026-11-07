@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **milestone 1 done** (scaffolding) - next: math + scene + path tracer. Sections marked _open_ still need a decision.
+Status: **milestone 2 done** (path tracer on the main thread) - next: workers. Sections marked _open_ still need a decision.
 
 ## goals
 
@@ -83,7 +83,7 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
 ## milestones
 
 1. ~~scaffolding - Vite/TS/Vitest, empty custom element showing a canvas, build produces the bundle~~ - done
-2. math + scene + path tracer - Cornell box renders progressively on the main thread
+2. ~~math + scene + path tracer - Cornell box renders progressively on the main thread~~ - done (diffuse only)
 3. workers - same, parallel, UI stays responsive
 4. BDPT - all strategies, MIS, diffuse only; validated against the path tracer
 5. specular - mirror + glass, caustics scene
@@ -109,6 +109,7 @@ Modified Cornell box - single fixed scene, parameterized by the controls below.
   - glass (dielectric, refraction + Fresnel)
   - material set is meant to grow later - materials behind one `Material` interface, so adding one is a new file + a dropdown entry
 - camera: classic Cornell framing, square aspect - fixed
+- switched-off lights are removed from the scene - the wall shows through _(open: or keep them as dark panels?)_
 
 ### geometry
 

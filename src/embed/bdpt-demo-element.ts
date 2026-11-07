@@ -1,3 +1,6 @@
+import { PathTracer } from '../integrators/path-tracer'
+import { ProgressiveRenderer } from '../render/progressive-renderer'
+import { createCornellBox } from '../scene/cornell-box'
 import styles from './bdpt-demo.css?inline'
 
 /** fixed render resolution - the canvas is CSS-scaled to fit the element */
@@ -15,6 +18,7 @@ const TEMPLATE = `
 /** `<bdpt-demo>` - the embeddable demo: render on the left, controls on the right */
 export class BdptDemoElement extends HTMLElement {
   readonly canvas: HTMLCanvasElement
+  private renderer: ProgressiveRenderer | null = null
 
   constructor() {
     super()
@@ -27,7 +31,18 @@ export class BdptDemoElement extends HTMLElement {
   }
 
   connectedCallback(): void {
-    drawPlaceholder(this.canvas)
+    const scene = createCornellBox({
+      lights: { top: true, left: true, right: true },
+      width: RENDER_SIZE,
+      height: RENDER_SIZE,
+    })
+    this.renderer = new ProgressiveRenderer(this.canvas, new PathTracer(scene, { maxDepth: 10 }))
+    this.renderer.start()
+  }
+
+  disconnectedCallback(): void {
+    this.renderer?.stop()
+    this.renderer = null
   }
 }
 
@@ -38,16 +53,4 @@ function requireElement<K extends keyof HTMLElementTagNameMap>(
   const element = root.querySelector(selector)
   if (!element) throw new Error(`<bdpt-demo>: missing <${selector}> in template`)
   return element
-}
-
-function drawPlaceholder(canvas: HTMLCanvasElement): void {
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-
-  ctx.fillStyle = '#000'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.fillStyle = '#666'
-  ctx.font = '16px system-ui, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.fillText('nothing rendered yet', canvas.width / 2, canvas.height / 2)
 }

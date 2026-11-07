@@ -18,9 +18,15 @@ Educational bidirectional path tracing demo, TS, shipped as one embeddable bundl
 
 ## conventions
 
+- directions follow PBRT: unit, world space, pointing _away_ from the surface (`wo` towards the camera side, `wi` towards the light)
+- `Vec3` / `Color` are immutable classes - allocation-heavy on purpose, readability first
+- `noUncheckedIndexedAccess` is off on purpose - typed-array code (film, splatting) would drown in `?? 0`
+
 - kebab-case file names, Prettier (no semicolons, single quotes, width 100), ESLint `typescript-eslint` strict
 - no non-null assertions (`!`) - lint forbids them, use an explicit check that throws
 
 ## notes
+
+- integrators are validated with a "furnace" test (closed box, every wall emits `Le` and reflects `albedo`, expected `Le / (1 - albedo)`) - catches double-counted light between NEE and emitter hits, wrong pdfs, missing cosines; extend it to BDPT
 
 - `npm audit` reports moderate issues in `typescript-eslint` deps - dev-only lint tooling, not in the bundle
