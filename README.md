@@ -87,6 +87,11 @@ npm test           # vitest
 npm run lint       # eslint
 npm run typecheck  # tsc
 npm run build      # dist/bdpt.js + dist/bdpt.iife.js
+
+npm run docs:images                      # the article's images -> dist/docs-images/
+npm run docs:images -- --out <dir> sds   # only those with "sds" in the name, into <dir>
 ```
+
+the article's images are listed in [`scripts/docs-images/images.ts`](scripts/docs-images/images.ts) - one entry per PNG. fixed-sample images come out pixel-identical on every run; the two equal-time comparisons depend on the machine
 
 see [PLAN.md](PLAN.md) for the design decisions and roadmap
