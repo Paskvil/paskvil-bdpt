@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **setup discussion** - nothing implemented yet. Sections marked *open* still need a decision.
+Status: **design discussion** - setup agreed, scene + interface next. Sections marked *open* still need a decision.
 
 ## goals
 
@@ -44,31 +44,24 @@ demo/          dev page (Vite) - not part of the bundle
 - MIS: balance or power heuristic, switchable - and a "no MIS" mode, for teaching
 - delta BSDFs (mirror, glass) handled explicitly - they're where BDPT gets interesting (caustics) and where most bugs live
 
-## CPU vs GPU
+## CPU only
 
-Recommendation: **CPU-first in TS, Web Workers for parallelism; WebGPU as an optional later backend.**
+Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU backend - GPU optimization would heavily degrade readability, which is the point of the project.
 
-- WebGL is a poor fit
-  - no compute shaders, no scatter writes - the light-tracing strategy (`t = 1`) splats to random pixels, which in WebGL means point-sprite hacks
-  - GLSL ES with no recursion and fixed loops makes BDPT's per-path vertex arrays + MIS walk ugly
-- WebGPU is the only sensible GPU target
-  - compute shaders + storage buffers + atomics (splatting via fixed-point `atomicAdd`)
-  - but: WGSL means a second copy of the whole integrator in a different language, with fixed-size arrays and no polymorphism (materials become `switch` on an enum) - noticeably less readable
-  - browser support is good in 2026, but not universal - CPU fallback is needed anyway
-- CPU in workers
-  - 4-16 cores × a few hundred k rays/s per core is plenty for a Cornell box at ~512² refining over seconds
-  - one codebase, real classes/interfaces, debuggable in DevTools, testable in Vitest
-- so: build the CPU renderer as *the* reference, keep the integrator interfaces narrow, and if speed becomes the bottleneck, add `backends/webgpu/` that mirrors it and is validated against it
+- WebGL is a poor fit anyway - no compute shaders, no scatter writes (the light-tracing strategy `t = 1` splats to arbitrary pixels)
+- WebGPU would work, but means a second copy of the integrator in WGSL with fixed-size arrays and no polymorphism
+- CPU in workers is plenty for a Cornell-box-sized scene refining over seconds, and it's one codebase, debuggable in DevTools, testable in Vitest
 
 ## tooling
 
 - TypeScript (strict), Vite (dev server + library build), Vitest (tests), ESLint + Prettier
-- npm *(open: or pnpm)*
+- npm
 - workers inlined into the bundle (`?worker&inline`) so the output is a single JS file
 - build outputs
   - `dist/bdpt.js` - ES module
   - `dist/bdpt.iife.js` - classic `<script>` for plain HTML pages
-- demo page deployed to GitHub Pages from CI *(open)*
+- not published as a package - the public repo is the reference, the built bundle is what gets embedded elsewhere
+- demo page on GitHub Pages *(open, nice-to-have)*
 
 ## embedding (sketch - to be designed)
 
@@ -95,11 +88,12 @@ Recommendation: **CPU-first in TS, Web Workers for parallelism; WebGPU as an opt
 4. BDPT - all strategies, MIS, diffuse only; validated against the path tracer
 5. specular - mirror + glass, caustics scene
 6. interface - controls, strategy visualization, PT vs BDPT comparison
-7. *(optional)* WebGPU backend
+
+## scene
+
+A "modified Cornell box" - layout and materials to be described by Jo *(pending)*
 
 ## open questions
 
-- CPU-first with optional WebGPU - agreed?
-- material set: diffuse + mirror + glass enough? (glossy/microfacet adds a lot of code)
-- npm or pnpm; publish to npm, or just a release bundle / GitHub Pages?
-- scenes: Cornell box variants only, or something more "BDPT-flavoured" (light behind a door, light in a lamp shade)?
+- scene layout + material set - pending (see above)
+- interface - after the scene
