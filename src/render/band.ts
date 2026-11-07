@@ -10,9 +10,16 @@ export interface BandJob {
   rowCount: number
 }
 
-/** the camera samples of one band - plain RGB triples, row by row, ready to transfer */
+/**
+ * the result of one band, ready to transfer
+ *
+ * - camera samples: plain RGB triples, row by row
+ * - splats: they can land anywhere on the film, but are few - kept as a flat list of
+ *   `[pixel index, r, g, b, ...]` instead of a whole-film buffer per band
+ */
 export class BandBuffer implements SampleSink {
   readonly sums: Float32Array
+  private readonly splats: number[] = []
 
   constructor(
     readonly width: number,
@@ -26,6 +33,15 @@ export class BandBuffer implements SampleSink {
     this.sums[index] += radiance.r
     this.sums[index + 1] += radiance.g
     this.sums[index + 2] += radiance.b
+  }
+
+  addSplat(filmX: number, filmY: number, radiance: Color): void {
+    const pixel = Math.floor(filmY) * this.width + Math.floor(filmX)
+    this.splats.push(pixel, radiance.r, radiance.g, radiance.b)
+  }
+
+  splatList(): Float32Array {
+    return new Float32Array(this.splats)
   }
 }
 

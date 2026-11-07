@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **milestone 3 done** (rendering in workers) - next: BDPT. Sections marked _open_ still need a decision.
+Status: **milestone 4 done** (BDPT, diffuse only) - next: mirror + glass. Sections marked _open_ still need a decision.
 
 ## goals
 
@@ -85,7 +85,7 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
 1. ~~scaffolding - Vite/TS/Vitest, empty custom element showing a canvas, build produces the bundle~~ - done
 2. ~~math + scene + path tracer - Cornell box renders progressively on the main thread~~ - done (diffuse only)
 3. ~~workers - same, parallel, UI stays responsive~~ - done
-4. BDPT - all strategies, MIS, diffuse only; validated against the path tracer
+4. ~~BDPT - all strategies, MIS, diffuse only; validated against the path tracer~~ - done
 5. specular - mirror + glass, caustics scene
 6. interface - controls, strategy visualization, PT vs BDPT comparison
 
@@ -177,14 +177,14 @@ top view (looking down)                 front view (from the camera)
   - SPP cap - switch (+ value) to stop rendering at N samples per pixel
   - download current snapshot as PNG
   - collapsible "advanced" section
-    - MIS: power / balance / off
+    - MIS: power / balance / off - "off" = every usable strategy weighted equally (`uniform` heuristic), still unbiased, just noisier
     - strategy view: full image, or the contribution of a single `(s, t)` strategy
     - max path depth
 - stats overlay, bottom-right of the render - abbreviations only, full name + short description on hover
   - `SPP` samples per pixel, `RAYS` rays cast, `R/S` rays per second, `TIME` elapsed, BDPT only: `LP` light paths
 - render resolution fixed at 512x512, the canvas is CSS-scaled to fit the element (aspect preserved)
 - narrow embeds - controls stack under the render (CSS container query)
-- rendering pauses when the element is scrolled out of view (`IntersectionObserver`), resumes when back - unless paused manually
+- rendering pauses when the element is scrolled out of view (`IntersectionObserver`) or the tab is hidden (`visibilitychange` - workers keep running otherwise), resumes when back - unless paused manually
 
 - PNG export
   - optional "include stats" checkbox next to the download button, on by default

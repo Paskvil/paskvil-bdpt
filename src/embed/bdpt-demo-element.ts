@@ -9,7 +9,7 @@ const DEFAULT_SETTINGS: RenderSettings = {
   width: RENDER_SIZE,
   height: RENDER_SIZE,
   lights: { top: true, left: true, right: true },
-  integrator: { kind: 'path-tracer', maxDepth: 10 },
+  integrator: { kind: 'bdpt', maxDepth: 10, heuristic: 'power' },
 }
 
 const TEMPLATE = `

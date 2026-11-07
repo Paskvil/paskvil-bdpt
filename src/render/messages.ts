@@ -11,4 +11,10 @@ export type ToWorker =
   | { type: 'configure'; generation: number; settings: RenderSettings }
   | { type: 'render'; generation: number; job: BandJob }
 
-export type FromWorker = { type: 'band'; generation: number; job: BandJob; sums: Float32Array }
+export interface FromWorker {
+  type: 'band'
+  generation: number
+  job: BandJob
+  sums: Float32Array
+  splats: Float32Array
+}

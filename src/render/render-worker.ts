@@ -30,8 +30,15 @@ scope.onmessage = ({ data: message }) => {
       // stale job, queued before the latest configure - the main thread would drop the result anyway
       if (message.generation !== generation || !setup || !settings) return
       const band = renderBand(setup.integrator, settings.width, message.job)
-      const reply: FromWorker = { type: 'band', generation, job: message.job, sums: band.sums }
-      scope.postMessage(reply, [band.sums.buffer])
+      const splats = band.splatList()
+      const reply: FromWorker = {
+        type: 'band',
+        generation,
+        job: message.job,
+        sums: band.sums,
+        splats,
+      }
+      scope.postMessage(reply, [band.sums.buffer, splats.buffer])
       break
     }
   }

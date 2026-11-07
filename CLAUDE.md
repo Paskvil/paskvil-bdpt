@@ -31,6 +31,11 @@ Educational bidirectional path tracing demo, TS, shipped as one embeddable bundl
 
 ## notes
 
+- shadow / connection rays must use `Ray.between` (nudges _both_ ends off their surfaces), never `Ray.spawn` + shortened distance - `spawn` shifts the whole line sideways, so near the far end it can pass inside the target's own object (cost BDPT 20% of the NEE light on the floating ball before it was found)
+- debugging BDPT bias: every (s, t) strategy is unbiased on its own - render each alone (uniform weights × strategy count) for a fixed path length and compare against brute-force path tracing of exactly that length; one strategy off = the bug is in it
+- BDPT vs path tracer test uses a floor-looking camera on purpose: pixels covering a light panel edge are too noisy to compare at test sample counts
+- BDPT costs ~6x the path tracer per sample (but converges faster where it matters)
+
 - integrators are validated with a "furnace" test (closed box, every wall emits `Le` and reflects `albedo`, expected `Le / (1 - albedo)`) - catches double-counted light between NEE and emitter hits, wrong pdfs, missing cosines; extend it to BDPT
 
 - `npm audit` reports moderate issues in `typescript-eslint` deps - dev-only lint tooling, not in the bundle

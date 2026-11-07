@@ -19,7 +19,34 @@ export class Ray {
     return new Ray(point.add(normal.scale(side)), direction)
   }
 
+  /**
+   * shadow ray from one point to another - each end nudged off its surface (when it has one)
+   * towards the other point, and the ray aimed between the nudged points
+   *
+   * nudging only the origin (as `spawn` does) would shift the whole line sideways: near the target
+   * it would pass up to `RAY_EPSILON` beside it - possibly inside the target's own object
+   */
+  static between(
+    from: Vec3,
+    fromNormal: Vec3 | null,
+    to: Vec3,
+    toNormal: Vec3 | null,
+  ): { ray: Ray; distance: number } {
+    const origin = nudgeToward(from, fromNormal, to)
+    const target = nudgeToward(to, toNormal, from)
+    const toTarget = target.sub(origin)
+    const distance = toTarget.length()
+    return { ray: new Ray(origin, toTarget.scale(1 / distance)), distance }
+  }
+
   at(distance: number): Vec3 {
     return this.origin.add(this.direction.scale(distance))
   }
+}
+
+/** moves a surface point off its surface, to the side `toward` is on */
+function nudgeToward(point: Vec3, normal: Vec3 | null, toward: Vec3): Vec3 {
+  if (!normal) return point
+  const side = toward.sub(point).dot(normal) > 0 ? RAY_EPSILON : -RAY_EPSILON
+  return point.add(normal.scale(side))
 }

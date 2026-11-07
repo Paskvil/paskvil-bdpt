@@ -1,13 +1,13 @@
 import type { SampleSink } from '../film/sample-sink'
 import { Color } from '../math/color'
-import { Ray, RAY_EPSILON } from '../math/ray'
+import { Ray } from '../math/ray'
 import type { Vec3 } from '../math/vec3'
 import type { Random } from '../rng/random'
 import type { Hit, Scene } from '../scene/scene'
 import type { Integrator } from './integrator'
 
 export interface PathTracerOptions {
-  /** max number of bounces - a path has at most `maxDepth + 1` segments */
+  /** max number of bounces - light reaching the camera has scattered at most this many times */
   maxDepth: number
 }
 
@@ -39,6 +39,8 @@ export class PathTracer implements Integrator {
     let throughput = Color.WHITE
     let countEmitted = true
 
+    // `depth` = bounces so far; light emitted at this hit has bounced `depth` times on its way to
+    // the camera, light sampled by NEE here will have bounced `depth + 1` times
     for (let depth = 0; depth <= this.options.maxDepth; depth++) {
       const hit = this.scene.intersect(ray)
       if (!hit) break
@@ -49,6 +51,8 @@ export class PathTracer implements Integrator {
       if (countEmitted && light) {
         radiance = radiance.add(throughput.mul(light.emitted(hit.normal, wo)))
       }
+
+      if (depth === this.options.maxDepth) break
 
       if (!material.isDelta) {
         radiance = radiance.add(throughput.mul(this.directLight(hit, wo, random)))
@@ -73,24 +77,21 @@ export class PathTracer implements Integrator {
     return radiance
   }
 
-  /** NEE - one light picked uniformly, one point on it, one shadow ray */
+  /** NEE - one light, one point on it, one shadow ray */
   private directLight(hit: Hit, wo: Vec3, random: Random): Color {
-    const lights = this.scene.lights
-    if (lights.length === 0) return Color.BLACK
+    const picked = this.scene.pickLight(random)
+    if (!picked) return Color.BLACK
 
-    const light = lights[Math.floor(random.next() * lights.length)]
-    const sample = light.sampleIncoming(hit.point, random)
+    const sample = picked.light.sampleIncoming(hit.point, random)
     if (!sample) return Color.BLACK
 
     const f = hit.object.material.evaluate(wo, sample.direction, hit.normal)
     if (f.isBlack()) return Color.BLACK
 
-    const shadowRay = Ray.spawn(hit.point, hit.normal, sample.direction)
-    // stop just short of the light itself, it would otherwise count as the occluder
-    if (!this.scene.isUnoccluded(shadowRay, sample.distance - 2 * RAY_EPSILON)) return Color.BLACK
+    const shadow = Ray.between(hit.point, hit.normal, sample.point, sample.normal)
+    if (!this.scene.isUnoccluded(shadow.ray, shadow.distance)) return Color.BLACK
 
     const cosine = Math.abs(sample.direction.dot(hit.normal))
-    const pickPdf = 1 / lights.length
-    return f.mul(sample.radiance).scale(cosine / (sample.pdf * pickPdf))
+    return f.mul(sample.radiance).scale(cosine / (sample.pdf * picked.probability))
   }
 }

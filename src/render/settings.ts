@@ -1,3 +1,5 @@
+import { Bdpt } from '../integrators/bdpt/bdpt'
+import type { MisHeuristic } from '../integrators/bdpt/mis'
 import type { Integrator } from '../integrators/integrator'
 import { PathTracer } from '../integrators/path-tracer'
 import { createCornellBox, type LightSwitches } from '../scene/cornell-box'
@@ -14,10 +16,9 @@ export interface RenderSettings {
   integrator: IntegratorSettings
 }
 
-export interface IntegratorSettings {
-  kind: 'path-tracer'
-  maxDepth: number
-}
+export type IntegratorSettings =
+  | { kind: 'path-tracer'; maxDepth: number }
+  | { kind: 'bdpt'; maxDepth: number; heuristic: MisHeuristic }
 
 export interface RenderSetup {
   scene: Scene
@@ -33,5 +34,7 @@ function createIntegrator(scene: Scene, settings: IntegratorSettings): Integrato
   switch (settings.kind) {
     case 'path-tracer':
       return new PathTracer(scene, { maxDepth: settings.maxDepth })
+    case 'bdpt':
+      return new Bdpt(scene, { maxDepth: settings.maxDepth, heuristic: settings.heuristic })
   }
 }

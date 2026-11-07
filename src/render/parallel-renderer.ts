@@ -87,6 +87,7 @@ export class ParallelRenderer {
     if (message.generation !== this.generation || !this.film) return
     entry.jobsInFlight--
     this.film.addBand(message.job.firstRow, message.job.rowCount, message.sums)
+    this.film.addSplatList(message.splats)
     this.imageOutdated = true
     this.dispatchJobs()
   }

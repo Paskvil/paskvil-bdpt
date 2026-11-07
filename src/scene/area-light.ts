@@ -1,4 +1,6 @@
 import { Color } from '../math/color'
+import { Frame } from '../math/frame'
+import { cosineHemispherePdf, sampleCosineHemisphere } from '../math/sampling'
 import type { Vec3 } from '../math/vec3'
 import type { Random } from '../rng/random'
 import type { Shape } from './shapes/shape'
@@ -6,6 +8,7 @@ import type { Shape } from './shapes/shape'
 /** a light arriving at a point from a sampled point on a light */
 export interface LightSample {
   point: Vec3
+  normal: Vec3
   /** unit direction from the receiving point towards the light */
   direction: Vec3
   distance: number
@@ -38,6 +41,21 @@ export class AreaLight {
 
     // convert the area pdf (1 / area) to solid angle as seen from the receiver
     const pdf = (distance * distance) / (cosAtLight * this.shape.area)
-    return { point, direction, distance, radiance: this.radiance, pdf }
+    return { point, normal, direction, distance, radiance: this.radiance, pdf }
+  }
+
+  /** pdf (per area) of picking a given point - uniform over the surface */
+  positionPdf(): number {
+    return 1 / this.shape.area
+  }
+
+  /** cosine-weighted emission direction around `normal` - starts a light subpath */
+  sampleEmissionDirection(normal: Vec3, random: Random): Vec3 {
+    return Frame.fromNormal(normal).toWorld(sampleCosineHemisphere(random.next(), random.next()))
+  }
+
+  /** pdf (per solid angle) of `sampleEmissionDirection` picking `direction` */
+  emissionDirectionPdf(normal: Vec3, direction: Vec3): number {
+    return cosineHemispherePdf(normal.dot(direction))
   }
 }

@@ -1,5 +1,6 @@
 import type { Ray } from '../math/ray'
 import type { Vec3 } from '../math/vec3'
+import type { Random } from '../rng/random'
 import type { AreaLight } from './area-light'
 import type { Camera } from './camera'
 import type { Material } from './materials/material'
@@ -31,6 +32,17 @@ export class Scene {
     readonly camera: Camera,
   ) {
     this.lights = objects.flatMap((object) => (object.light ? [object.light] : []))
+  }
+
+  /** picks one light, uniformly - `probability` is the same for every light */
+  pickLight(random: Random): { light: AreaLight; probability: number } | null {
+    if (this.lights.length === 0) return null
+    const light = this.lights[Math.floor(random.next() * this.lights.length)]
+    return { light, probability: this.lightPickProbability() }
+  }
+
+  lightPickProbability(): number {
+    return 1 / this.lights.length
   }
 
   intersect(ray: Ray, maxDistance = Infinity): Hit | null {
