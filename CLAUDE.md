@@ -41,6 +41,7 @@ Educational bidirectional path tracing demo, TS, shipped as one embeddable bundl
 - the long write-up lives in the site repo `/home/josef/Projects/mine/paskvil-static` (Eleventy, another Claude session "paskvil-static" owns it): this repo writes only `src/projects/bdpt.md`, `src/assets/js/bdpt.js` (= `dist/bdpt.iife.js`, recopy on every rebuild) and `src/assets/img/bdpt/`; never commit there - ping that session instead
   - images: `npm run docs:images -- --out ../paskvil-static/src/assets/img/bdpt [filters]` (list in `scripts/docs-images/images.ts`, runs via `tsx` + worker threads); after re-rendering, ping the site session
   - `scripts/` has its own `tsconfig.json` (adds Node types) so Node types don't leak into the browser code
+  - the article's front matter has `toc: true` - keep it; the table of contents is built from the h2/h3 headings, never write one by hand
   - site voice: lowercase, no closing full stops, `-` for asides, `<details>` + blank lines around fences for collapsible code, `<figure>` (or `figure.pair`) with width/height, no KaTeX
 
 - new implementation gotchas go into PLAN.md "gotchas (collected for the docs)" as they come up - they feed the README / site article
