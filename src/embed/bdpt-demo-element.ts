@@ -1,10 +1,16 @@
-import { PathTracer } from '../integrators/path-tracer'
-import { ProgressiveRenderer } from '../render/progressive-renderer'
-import { createCornellBox } from '../scene/cornell-box'
+import { ParallelRenderer } from '../render/parallel-renderer'
+import type { RenderSettings } from '../render/settings'
 import styles from './bdpt-demo.css?inline'
 
 /** fixed render resolution - the canvas is CSS-scaled to fit the element */
 export const RENDER_SIZE = 512
+
+const DEFAULT_SETTINGS: RenderSettings = {
+  width: RENDER_SIZE,
+  height: RENDER_SIZE,
+  lights: { top: true, left: true, right: true },
+  integrator: { kind: 'path-tracer', maxDepth: 10 },
+}
 
 const TEMPLATE = `
   <div class="layout">
@@ -18,7 +24,7 @@ const TEMPLATE = `
 /** `<bdpt-demo>` - the embeddable demo: render on the left, controls on the right */
 export class BdptDemoElement extends HTMLElement {
   readonly canvas: HTMLCanvasElement
-  private renderer: ProgressiveRenderer | null = null
+  private renderer: ParallelRenderer | null = null
 
   constructor() {
     super()
@@ -31,17 +37,13 @@ export class BdptDemoElement extends HTMLElement {
   }
 
   connectedCallback(): void {
-    const scene = createCornellBox({
-      lights: { top: true, left: true, right: true },
-      width: RENDER_SIZE,
-      height: RENDER_SIZE,
-    })
-    this.renderer = new ProgressiveRenderer(this.canvas, new PathTracer(scene, { maxDepth: 10 }))
+    this.renderer = new ParallelRenderer(this.canvas)
+    this.renderer.configure(DEFAULT_SETTINGS)
     this.renderer.start()
   }
 
   disconnectedCallback(): void {
-    this.renderer?.stop()
+    this.renderer?.dispose()
     this.renderer = null
   }
 }

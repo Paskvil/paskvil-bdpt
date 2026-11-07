@@ -1,0 +1,49 @@
+import type { SampleSink } from '../film/sample-sink'
+import type { Integrator } from '../integrators/integrator'
+import type { Color } from '../math/color'
+import { Sfc32 } from '../rng/random'
+
+/** a unit of work: one sample for every pixel of a few consecutive rows, in a given pass */
+export interface BandJob {
+  pass: number
+  firstRow: number
+  rowCount: number
+}
+
+/** the camera samples of one band - plain RGB triples, row by row, ready to transfer */
+export class BandBuffer implements SampleSink {
+  readonly sums: Float32Array
+
+  constructor(
+    readonly width: number,
+    readonly job: BandJob,
+  ) {
+    this.sums = new Float32Array(width * job.rowCount * 3)
+  }
+
+  addSample(x: number, y: number, radiance: Color): void {
+    const index = ((y - this.job.firstRow) * this.width + x) * 3
+    this.sums[index] += radiance.r
+    this.sums[index + 1] += radiance.g
+    this.sums[index + 2] += radiance.b
+  }
+}
+
+export function renderBand(integrator: Integrator, width: number, job: BandJob): BandBuffer {
+  const buffer = new BandBuffer(width, job)
+  for (let y = job.firstRow; y < job.firstRow + job.rowCount; y++) {
+    const random = new Sfc32(rowSeed(job.pass, y))
+    for (let x = 0; x < width; x++) {
+      integrator.renderSample(x, y, buffer, random)
+    }
+  }
+  return buffer
+}
+
+/**
+ * every (pass, row) gets its own random stream - so the image doesn't depend on which worker
+ * rendered which band, and any band can be re-rendered exactly (tests, debugging)
+ */
+function rowSeed(pass: number, row: number): number {
+  return Math.imul(pass, 0x9e3779b1) ^ row
+}

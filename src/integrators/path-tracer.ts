@@ -1,4 +1,4 @@
-import type { Film } from '../film/film'
+import type { SampleSink } from '../film/sample-sink'
 import { Color } from '../math/color'
 import { Ray, RAY_EPSILON } from '../math/ray'
 import type { Vec3 } from '../math/vec3'
@@ -28,9 +28,9 @@ export class PathTracer implements Integrator {
     private readonly options: PathTracerOptions,
   ) {}
 
-  renderSample(x: number, y: number, film: Film, random: Random): void {
+  renderSample(x: number, y: number, sink: SampleSink, random: Random): void {
     const ray = this.scene.camera.generateRay(x + random.next(), y + random.next())
-    film.addSample(x, y, this.radiance(ray, random))
+    sink.addSample(x, y, this.radiance(ray, random))
   }
 
   radiance(cameraRay: Ray, random: Random): Color {
