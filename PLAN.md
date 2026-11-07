@@ -110,7 +110,7 @@ Modified Cornell box - single fixed scene, parameterized by the controls below.
   - material set is meant to grow later - materials behind one `Material` interface, so adding one is a new file + a dropdown entry
 - camera: classic Cornell framing, square aspect - fixed
 
-### geometry (proposed - under review)
+### geometry
 
 Unit box, right-handed, _y up_:
 
@@ -118,14 +118,14 @@ Unit box, right-handed, _y up_:
 - `y` floor → ceiling - floor at `y = 0`, ceiling at `y = 1`
 - `z` back → front - back wall at `z = 0`, front is open at `z = 1`, the camera looks down `-z`
 
-| object       | where                                                       | size                                                   |
-| ------------ | ----------------------------------------------------------- | ------------------------------------------------------ |
-| left ball    | centre `(0.30, 1/6, 0.35)` - resting on the floor           | radius `1/6` (diameter 1/3 of the box)                 |
-| right ball   | centre `(0.68, 0.45, 0.65)` - bottom ~0.28 above the floor  | radius `1/6`                                           |
-| top light    | ceiling, centred at `(0.5, 1, 0.5)`                         | `0.25 × 0.25`                                          |
-| left lights  | left wall, `z = 0.5`, centres at `y = 0.25` and `y = 0.75`  | `0.15 × 0.15` each                                     |
-| right lights | right wall, `y = 0.5`, centres at `z = 0.25` and `z = 0.75` | `0.15 × 0.15` each                                     |
-| camera       | `(0.5, 0.5, 2.4)` looking at `-z`                           | vertical FOV 40° - the open front just fills the frame |
+| object       | where                                                       | size                                                                    |
+| ------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------- |
+| left ball    | centre `(0.30, 1/6, 0.35)` - resting on the floor           | radius `1/6` (diameter 1/3 of the box)                                  |
+| right ball   | centre `(0.68, 0.45, 0.65)` - bottom ~0.28 above the floor  | radius `1/6`                                                            |
+| top light    | ceiling, centred at `(0.5, 1, 0.5)`                         | `0.25 × 0.25`                                                           |
+| left lights  | left wall, `z = 0.5`, centres at `y = 0.25` and `y = 0.75`  | `0.125 × 0.125` each - half the top light's side, a quarter of its area |
+| right lights | right wall, `y = 0.5`, centres at `z = 0.25` and `z = 0.75` | `0.125 × 0.125` each - half the top light's side, a quarter of its area |
+| camera       | `(0.5, 0.5, 2.4)` looking at `-z`                           | vertical FOV 40° - the open front just fills the frame                  |
 
 ```
 top view (looking down)                 front view (from the camera)
@@ -144,7 +144,8 @@ top view (looking down)                 front view (from the camera)
 ```
 
 - light panels sit `1e-3` off their wall - avoids the panel and the wall being coplanar
-- emission: neutral white, each _group_ has the same total power (side panels are smaller, so they're brighter) - toggling keeps the image brightness similar
+- emission: neutral white, the _same radiance_ on every panel - smaller panels give off less light, which feels more natural
+  - so each side group (2 panels × 1/4 area) has half the power of the top light
 - reflectances (linear RGB)
   - white `0.73`, red `(0.65, 0.05, 0.05)`, green `(0.12, 0.45, 0.15)` - the classic Cornell values
   - light blue `(0.45, 0.60, 0.85)`, light peach `(0.90, 0.62, 0.48)`
