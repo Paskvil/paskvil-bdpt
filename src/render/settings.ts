@@ -14,6 +14,7 @@ export interface RenderSettings {
   width: number
   height: number
   lights: LightSwitches
+  topShade: boolean
   balls: BallMaterials
   integrator: IntegratorSettings
 }

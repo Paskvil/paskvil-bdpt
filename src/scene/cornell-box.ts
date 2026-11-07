@@ -34,6 +34,8 @@ export interface BallMaterials {
 export interface CornellBoxOptions {
   lights: LightSwitches
   balls: BallMaterials
+  /** a white plate just under the top light - its light only gets out by bouncing (see `shade`) */
+  topShade: boolean
   width: number
   height: number
 }
@@ -55,6 +57,14 @@ const SIDE_LIGHT_SIZE = 0.125
 /** light panels sit this far off their wall, so the two aren't coplanar */
 const LIGHT_OFFSET = 1e-3
 
+/**
+ * the shade: wider than the top light and just below it, so light leaves only through the thin
+ * slit between the shade and the ceiling, after bouncing between the two - hard for every
+ * sampling strategy, which is where Metropolis light transport shines
+ */
+const SHADE_SIZE = 1.5 * TOP_LIGHT_SIZE
+const SHADE_GAP = 0.03
+
 const BALL_RADIUS = 1 / 6
 
 const CAMERA_FOV_DEGREES = 40
@@ -62,7 +72,13 @@ const CAMERA_FOV_DEGREES = 40
 const CAMERA_DISTANCE = 2.37
 
 export function createCornellBox(options: CornellBoxOptions): Scene {
-  const objects = [...walls(), ...balls(options.balls), ...lights(options.lights)]
+  const objects = [
+    ...walls(),
+    ...balls(options.balls),
+    ...lights(options.lights),
+    // a shade without its light would just hang there
+    ...(options.topShade && options.lights.top ? [shade()] : []),
+  ]
   const camera = new Camera(
     vec3(0.5, 0.5, CAMERA_DISTANCE),
     vec3(0.5, 0.5, 0),
@@ -142,4 +158,15 @@ function lights(switches: LightSwitches): SceneObject[] {
       material: LIGHT_SURFACE,
       light: new AreaLight(panel.quad, LIGHT_RADIANCE),
     }))
+}
+
+/** two-sided white plate under the top light */
+function shade(): SceneObject {
+  const size = SHADE_SIZE
+  const center = vec3(0.5, 1 - LIGHT_OFFSET - SHADE_GAP, 0.5)
+  return {
+    name: 'top light shade',
+    shape: Quad.centered(center, vec3(size, 0, 0), vec3(0, 0, size)),
+    material: WHITE,
+  }
 }

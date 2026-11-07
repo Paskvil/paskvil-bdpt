@@ -31,6 +31,7 @@ function bdpt(
     width: size,
     height: size,
     lights,
+    topShade: false,
     balls,
     integrator: { kind: 'bdpt', maxDepth: MAX_DEPTH, heuristic: 'power', only },
   }
@@ -41,6 +42,7 @@ function pathTracer(size: number, lights: LightSwitches, balls: BallMaterials): 
     width: size,
     height: size,
     lights,
+    topShade: false,
     balls,
     integrator: { kind: 'path-tracer', maxDepth: MAX_DEPTH },
   }

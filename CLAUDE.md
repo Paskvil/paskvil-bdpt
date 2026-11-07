@@ -50,6 +50,7 @@ Educational bidirectional path tracing demo, TS, shipped as one embeddable bundl
 - BDPT vs path tracer test uses a floor-looking camera on purpose: pixels covering a light panel edge are too noisy to compare at test sample counts
   - it compares block means within 4 standard errors, estimated from independent batches - no hand-tuned tolerances (caustics make the _path tracer_ reference the noisy one)
   - sanity-check such tests by sabotage: a 10% darker NEE strategy must fail them
+  - shared in `src/integrators/test-images.ts` (`expectSameImage`): 6 batches, 6 standard errors - with so few batches the ratio is t-distributed (heavy tails), 4 standard errors failed by chance once PSSMLT's randomness changed
 - glass: the radiance-vs-importance scaling (`Transport`) cancels for any path through a closed glass ball, so no test in this scene can detect it being wrong - it's covered by the material unit test only
 - BDPT costs ~6x the path tracer per sample (but converges faster where it matters)
 

@@ -54,7 +54,7 @@ export function formatStats(stats: RenderStats, controls: DemoControls): Stat[] 
 export function describeSettings(controls: DemoControls): string[] {
   const lights = Object.entries(controls.lights)
     .filter(([, on]) => on)
-    .map(([name]) => name)
+    .map(([name]) => (name === 'top' && controls.topShade ? 'top (shaded)' : name))
     .join(' + ')
   const { left, right } = controls.balls
   const lines = [

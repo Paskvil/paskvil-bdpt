@@ -4,6 +4,7 @@ import { describeSettings, formatStats } from './stats'
 
 const CONTROLS: DemoControls = {
   lights: { top: true, left: false, right: true },
+  topShade: false,
   balls: { left: 'mirror', right: 'glass' },
   integrator: 'bdpt',
   sampleLimit: null,
@@ -51,6 +52,7 @@ describe('describeSettings', () => {
       'lights top + right',
       'left ball mirror · right ball glass',
     ])
+    expect(describeSettings({ ...CONTROLS, topShade: true })[1]).toBe('lights top (shaded) + right')
     expect(describeSettings({ ...CONTROLS, integrator: 'pssmlt' })[0]).toBe(
       'primary sample space Metropolis light transport',
     )

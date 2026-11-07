@@ -1,5 +1,8 @@
 import { INTEGRATOR_NAMES, RENDER_SIZE } from './demo-controls'
 
+const SHADE_DESCRIPTION =
+  'a white plate just under the top light - its light gets out only by bouncing through a thin slit'
+
 /**
  * the element's markup: the render on the left, a plain `<form>` of controls on the right
  *
@@ -12,10 +15,11 @@ export const TEMPLATE = `
       <dl class="stats"></dl>
     </div>
     <form class="controls">
-      ${choices('lights', 'checkbox', 'light', [
-        ['top', 'top', true],
-        ['left', 'left', true],
-        ['right', 'right', true],
+      ${group('lights', [
+        chip('checkbox', 'light', 'top', 'top', true),
+        chip('checkbox', 'light', 'left', 'left', true),
+        chip('checkbox', 'light', 'right', 'right', true),
+        chip('checkbox', 'top-shade', 'on', 'shade', false, SHADE_DESCRIPTION),
       ])}
       ${ballChoices('left ball', 'left-ball')}
       ${ballChoices('right ball', 'right-ball')}
@@ -113,23 +117,39 @@ function ballChoices(legend: string, name: string): string {
   ])
 }
 
-/** a group of chips - `[value, label, checked, hover description?]` per option */
+/** a group of chips of one field - `[value, label, checked, hover description?]` per option */
 function choices(
   legend: string,
   type: 'checkbox' | 'radio',
   name: string,
   options: [value: string, label: string, checked: boolean, title?: string][],
 ): string {
-  const chips = options.map(
-    ([value, label, checked, title]) => `
-      <label class="chip"${title ? ` title="${title}"` : ''}>
-        <input type="${type}" name="${name}" value="${value}"${checked ? ' checked' : ''} />
-        <span>${label}</span>
-      </label>`,
+  const chips = options.map(([value, label, checked, title]) =>
+    chip(type, name, value, label, checked, title),
   )
+  return group(legend, chips)
+}
+
+function group(legend: string, chips: string[]): string {
   return `
     <fieldset>
       ${legend ? `<legend class="legend">${legend}</legend>` : ''}
       <div class="chips">${chips.join('')}</div>
     </fieldset>`
+}
+
+/** a checkbox or radio styled as a chip */
+function chip(
+  type: 'checkbox' | 'radio',
+  name: string,
+  value: string,
+  label: string,
+  checked: boolean,
+  title?: string,
+): string {
+  return `
+    <label class="chip"${title ? ` title="${title}"` : ''}>
+      <input type="${type}" name="${name}" value="${value}"${checked ? ' checked' : ''} />
+      <span>${label}</span>
+    </label>`
 }

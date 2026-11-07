@@ -23,6 +23,8 @@ export function usesBdpt(integrator: IntegratorChoice): boolean {
 /** everything the control panel sets - read from the form in one go, see `readControls` */
 export interface DemoControls {
   lights: LightSwitches
+  /** the shade under the top light - see `createCornellBox` */
+  topShade: boolean
   balls: { left: BallMaterial; right: BallMaterial }
   integrator: IntegratorChoice
   /** samples per pixel to stop at - `null` for no limit */
@@ -61,6 +63,7 @@ export function readControls(form: HTMLFormElement): DemoControls {
       left: lightsOn.includes('left'),
       right: lightsOn.includes('right'),
     },
+    topShade: data.has('top-shade'),
     balls: {
       left: oneOf(data.get('left-ball'), BALL_MATERIALS),
       right: oneOf(data.get('right-ball'), BALL_MATERIALS),
@@ -90,6 +93,7 @@ export function toRenderSettings(controls: DemoControls): RenderSettings {
     width: RENDER_SIZE,
     height: RENDER_SIZE,
     lights: controls.lights,
+    topShade: controls.topShade,
     balls: controls.balls,
     integrator:
       controls.integrator === 'path-tracer'

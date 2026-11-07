@@ -7,9 +7,10 @@ import { Sphere } from './shapes/sphere'
 const ALL_ON = { top: true, left: true, right: true }
 const BOX_CENTER = vec3(0.5, 0.5, 0.5)
 
-function scene(lights = ALL_ON) {
+function scene(lights = ALL_ON, topShade = false) {
   return createCornellBox({
     lights,
+    topShade,
     balls: { left: 'diffuse', right: 'diffuse' },
     width: 64,
     height: 64,
@@ -54,5 +55,22 @@ describe('createCornellBox', () => {
       }
     }
     expect(balls[0].center.y).toBeCloseTo(balls[0].radius)
+  })
+
+  it('puts the shade just under the top light, a bit wider - only while that light is on', () => {
+    const shadeOf = (lights = ALL_ON) =>
+      scene(lights, true).objects.find((object) => object.name === 'top light shade')
+    const shade = shadeOf()?.shape
+    const topLight = scene().lights[0].shape
+    if (!(shade instanceof Quad) || !(topLight instanceof Quad)) throw new Error('expected quads')
+
+    expect(shade.area).toBeGreaterThan(topLight.area)
+    const gap = topLight.corner.y - shade.corner.y
+    expect(gap).toBeGreaterThan(0)
+    expect(gap).toBeLessThan(0.1)
+    expect(shadeOf({ ...ALL_ON, top: false })).toBeUndefined()
+    expect(scene(ALL_ON, false).objects.some((object) => object.name === 'top light shade')).toBe(
+      false,
+    )
   })
 })
