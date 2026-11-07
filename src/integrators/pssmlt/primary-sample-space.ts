@@ -1,4 +1,10 @@
-import { Sfc32, type Random } from '../../rng/random'
+import { Sfc32, type Random, type StreamSource } from '../../rng/random'
+
+/**
+ * the vector is split into interleaved streams - number k of stream i sits at `i + STREAMS · k` -
+ * so each part of a sample (camera path, light path, connections) keeps its own numbers
+ */
+const STREAMS = 3
 
 export interface MutationOptions {
   /** probability of a large step - every number replaced, a fresh independent sample */
@@ -27,7 +33,7 @@ interface PrimarySample {
  * numbers are created lazily, the first time the integrator asks for them, and a number not used
  * for a while catches up on the steps it missed only when it's used again
  */
-export class PrimarySampleSpace implements Random {
+export class PrimarySampleSpace implements StreamSource {
   private readonly samples: PrimarySample[] = []
   /** the source of the actual randomness - the mutations themselves */
   private readonly random: Random
@@ -35,7 +41,8 @@ export class PrimarySampleSpace implements Random {
   private lastLargeStepAt = 0
   /** the very first vector is all fresh numbers - same as a large step */
   private largeStep = true
-  private nextIndex = 0
+  /** per stream: how many numbers it has handed out in this iteration */
+  private readonly nextInStream = new Array<number>(STREAMS).fill(0)
 
   constructor(
     seed: number,
@@ -48,12 +55,21 @@ export class PrimarySampleSpace implements Random {
   startIteration(): void {
     this.iteration++
     this.largeStep = this.random.next() < this.options.largeStepProbability
-    this.nextIndex = 0
+    this.nextInStream.fill(0)
   }
 
+  /** the numbers of stream 0 - what a single-stream user (PSSMLT picking the pixel) sees */
   next(): number {
-    const sample = this.ensureMutated(this.nextIndex++)
-    return sample.value
+    return this.nextOf(0)
+  }
+
+  stream(index: number): Random {
+    return { next: () => this.nextOf(index) }
+  }
+
+  private nextOf(stream: number): number {
+    const index = stream + STREAMS * this.nextInStream[stream]++
+    return this.ensureMutated(index).value
   }
 
   /** the current vector, as far as it's been used - for tests and debugging */
@@ -78,8 +94,12 @@ export class PrimarySampleSpace implements Random {
 
   /** brings the number at `index` up to the current iteration */
   private ensureMutated(index: number): PrimarySample {
+    // a number used for the first time starts uniformly random, as if drawn at the last large
+    // step - starting at 0 would bias new dimensions until the next accepted large step
     while (this.samples.length <= index) {
-      this.samples.push({ value: 0, modifiedAt: 0, backup: 0, backupModifiedAt: 0 })
+      const value = this.random.next()
+      const modifiedAt = this.lastLargeStepAt
+      this.samples.push({ value, modifiedAt, backup: value, backupModifiedAt: modifiedAt })
     }
     const sample = this.samples[index]
 

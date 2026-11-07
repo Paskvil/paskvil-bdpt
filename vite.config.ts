@@ -17,5 +17,7 @@ export default defineConfig({
 
   test: {
     include: ['src/**/*.test.ts'],
+    // the integrator tests render images - a few seconds each alone, more with the suite in parallel
+    testTimeout: 30_000,
   },
 })

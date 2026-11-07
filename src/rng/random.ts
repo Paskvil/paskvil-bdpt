@@ -51,3 +51,24 @@ function splitMix32(seed: number): () => number {
     return (z ^ (z >>> 16)) >>> 0
   }
 }
+
+/** a source of several separate streams of numbers - see `randomStreams` */
+export interface StreamSource extends Random {
+  stream(index: number): Random
+}
+
+/**
+ * `count` streams of numbers for the separate parts of a sample (BDPT: camera path, light path,
+ * connections). a plain generator just hands out itself each time, so nothing changes for it;
+ * PSSMLT's primary sample space gives each part its own stretch of numbers, so when one part
+ * changes how many numbers it uses, the others keep theirs (PBRT's "sample streams")
+ */
+export function randomStreams(random: Random, count: number): Random[] {
+  return Array.from({ length: count }, (_, index) =>
+    isStreamSource(random) ? random.stream(index) : random,
+  )
+}
+
+function isStreamSource(random: Random): random is StreamSource {
+  return 'stream' in random
+}

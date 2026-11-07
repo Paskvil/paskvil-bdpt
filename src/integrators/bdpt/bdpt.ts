@@ -1,6 +1,6 @@
 import type { SampleSink } from '../../film/sample-sink'
 import { Color } from '../../math/color'
-import type { Random } from '../../rng/random'
+import { randomStreams, type Random } from '../../rng/random'
 import type { Scene } from '../../scene/scene'
 import type { Integrator } from '../integrator'
 import { connect } from './connect'
@@ -45,16 +45,17 @@ export class Bdpt implements Integrator {
 
   renderSample(x: number, y: number, sink: SampleSink, random: Random): void {
     const { scene } = this
+    const [cameraNumbers, lightNumbers, connectionNumbers] = randomStreams(random, 3)
     const { maxDepth, heuristic, only } = this.options
     // a path with `maxDepth` bounces has `maxDepth + 2` vertices, camera and light included
     const cameraPath = generateCameraSubpath(
       scene,
-      x + random.next(),
-      y + random.next(),
+      x + cameraNumbers.next(),
+      y + cameraNumbers.next(),
       maxDepth + 2,
-      random,
+      cameraNumbers,
     )
-    const lightPath = generateLightSubpath(scene, maxDepth + 1, random)
+    const lightPath = generateLightSubpath(scene, maxDepth + 1, lightNumbers)
 
     let radiance = Color.BLACK
     for (let t = 1; t <= cameraPath.length; t++) {
@@ -63,7 +64,15 @@ export class Bdpt implements Integrator {
         if (bounces < 0 || bounces > maxDepth || (s === 1 && t === 1)) continue
         if (only && (s !== only.s || t !== only.t)) continue
 
-        const contribution = connect(scene, lightPath, cameraPath, s, t, heuristic, random)
+        const contribution = connect(
+          scene,
+          lightPath,
+          cameraPath,
+          s,
+          t,
+          heuristic,
+          connectionNumbers,
+        )
         if (!contribution) continue
 
         const weight = only && !only.weighted ? 1 : contribution.misWeight

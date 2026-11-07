@@ -56,4 +56,22 @@ describe('PrimarySampleSpace', () => {
     space.accept()
     expect(space.snapshot()).toEqual(accepted)
   })
+
+  it('a number used for the first time is uniform, also after many small steps', () => {
+    // regression: new numbers used to start at 0 and get small steps from there - close to 0 or 1
+    const space = new PrimarySampleSpace(9, { largeStepProbability: 0, smallStepSize: 0.01 })
+    space.next()
+    const fresh: number[] = []
+    for (let iteration = 0; iteration < 4000; iteration++) {
+      space.startIteration()
+      for (let index = 0; index <= iteration; index++) {
+        const value = space.next()
+        if (index === iteration) fresh.push(value) // a number used for the first time
+      }
+      space.accept()
+      if (iteration > 40) break
+    }
+    const middle = fresh.filter((value) => value > 0.1 && value < 0.9).length
+    expect(middle / fresh.length).toBeGreaterThan(0.5)
+  })
 })
