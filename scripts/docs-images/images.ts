@@ -48,6 +48,24 @@ function pathTracer(size: number, lights: LightSwitches, balls: BallMaterials): 
   }
 }
 
+/** single-threaded time per image - about what 30 s are in the browser, on 7-8 cores */
+const SHADE_SECONDS = 150
+
+/** top light only, behind its shade, diffuse balls - the scene of the PSSMLT section */
+function shaded(kind: 'path-tracer' | 'bdpt' | 'pssmlt'): RenderSettings {
+  return {
+    width: 512,
+    height: 512,
+    lights: TOP_LIGHT,
+    topShade: true,
+    balls: { left: 'diffuse', right: 'diffuse' },
+    integrator:
+      kind === 'path-tracer'
+        ? { kind, maxDepth: MAX_DEPTH }
+        : { kind, maxDepth: MAX_DEPTH, heuristic: 'power', only: null },
+  }
+}
+
 /** the scene of the strategy section: top light only, glass ball on the right */
 const STRATEGY_BALLS: BallMaterials = { left: 'diffuse', right: 'glass' }
 const STRATEGY_SAMPLES = 128
@@ -108,5 +126,25 @@ export const DOC_IMAGES: DocImage[] = [
     settings: bdpt(512, TOP_LIGHT, SDS_BALLS),
     stop: { samples: 60 },
     crop: SDS_CROP,
+  },
+
+  // "the lamp shade" - the scene that's hard for path tracing, equal time, all three algorithms
+  ...(['path-tracer', 'bdpt', 'pssmlt'] as const).map((kind): DocImage => ({
+    name: `shade-${kind}`,
+    settings: shaded(kind),
+    stop: { seconds: SHADE_SECONDS },
+  })),
+  // PSSMLT's noise up close - blotches rather than salt
+  {
+    name: 'shade-pssmlt-crop',
+    settings: shaded('pssmlt'),
+    stop: { seconds: SHADE_SECONDS },
+    crop: { x: 96, y: 300, width: 160, height: 140, scale: 2 },
+  },
+  {
+    name: 'shade-bdpt-crop',
+    settings: shaded('bdpt'),
+    stop: { seconds: SHADE_SECONDS },
+    crop: { x: 96, y: 300, width: 160, height: 140, scale: 2 },
   },
 ]

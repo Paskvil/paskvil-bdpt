@@ -94,8 +94,9 @@ export class PrimarySampleSpace implements StreamSource {
 
   /** brings the number at `index` up to the current iteration */
   private ensureMutated(index: number): PrimarySample {
-    // a number used for the first time starts uniformly random, as if drawn at the last large
-    // step - starting at 0 would bias new dimensions until the next accepted large step
+    // a number used for the first time starts uniformly random, as if drawn at the
+    // last large step - starting at 0 would bias new dimensions until the next accepted
+    // large step
     while (this.samples.length <= index) {
       const value = this.random.next()
       const modifiedAt = this.lastLargeStepAt

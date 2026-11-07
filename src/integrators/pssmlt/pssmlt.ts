@@ -76,8 +76,8 @@ export class Pssmlt {
       const proposed = this.evaluate(chain.space)
       const acceptance = Math.min(1, proposed.luminance / chain.current.luminance)
 
-      // both states get their share of this step's light ("expected value" splatting) - less
-      // noise than adding just the one the chain ends up in
+      // both states get their share of this step's light ("expected value" splatting) -
+      // less noise than adding just the one the chain ends up in
       this.splat(sink, proposed, acceptance)
       this.splat(sink, chain.current, 1 - acceptance)
 

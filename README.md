@@ -45,6 +45,8 @@ fonts aren't bundled - load them on the page (as `@font-face`), or the fallbacks
 - the demo's "advanced" section lets you look at a single `(s, t)`, weighted (its share of the image) or unweighted (its own full estimate)
 - **PSSMLT** (primary sample space Metropolis light transport) wraps BDPT without changing it. a BDPT sample is a function of the "random" numbers it uses - PSSMLT hands it a vector of numbers that a Markov chain mutates a little at a time, keeping a change with probability `min(1, new brightness / current brightness)`. so once a chain finds a bright, hard-to-find path it stays around and explores its neighbours. each visit adds `light / brightness × b`, where `b`, the average brightness, comes from a short bootstrap of plain samples
 
+- the **shade** under the top light lets light out only through a thin slit - hopeless for path tracing, while BDPT's connections reach right through the slit. PSSMLT gets there too, at equal time with ~4× BDPT's noise in this box, and blotchy rather than fine. it wins only when no BDPT strategy can build the important paths - the box doesn't have such light, and the demo doesn't pretend otherwise
+
 ### where to look in the code
 
 |                                                                                                    |                                                                                  |
@@ -73,6 +75,9 @@ the things that cost the most time - or would have, with no tests to catch them:
 - **specular-diffuse-specular paths** (a caustic seen in a mirror) can't be built by any BDPT connection - only by hitting the light by chance, same as the path tracer. shows up as "salt" on mirror balls
 - **compare at equal samples _and_ equal time.** a BDPT sample costs ~4× the rays of a path tracer sample - per sample it wins everywhere here, per second not always
 - **testing an unbiased renderer**: compare two independent integrators within standard errors from independent batches - fixed tolerances break on caustics, where the _reference_ is the noisy one. then sabotage the code (10% darker NEE) and check the test fails
+- **PSSMLT needs separate number streams** for the camera path, light path and connections - with one stream, a camera path one bounce longer shifts every number of the light path, so small mutations never explore light paths. and a number used for the first time must start uniformly random, not at 0
+- **a furnace can't test a Markov chain** - every path is equally bright there, so even a chain accepting every mutation passes. compare against another integrator on a real scene
+- **few batches, heavy tails** - with 6 batches the standard error is itself a rough estimate; "within 4 standard errors" failed by chance, 6 is the honest threshold
 - **debugging a biased BDPT**: render each `(s, t)` alone, unweighted, for one path length - they must all agree with brute force; the odd one out has the bug
 
 ### references
