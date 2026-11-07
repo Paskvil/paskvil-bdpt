@@ -1,6 +1,12 @@
 import type { BandJob } from './band'
 import type { RenderSettings } from './settings'
 
+/** PSSMLT's unit of work: advance one Markov chain by a number of mutations */
+export interface ChainJob {
+  chain: number
+  mutations: number
+}
+
 /**
  * main thread ↔ worker protocol
  *
@@ -9,13 +15,16 @@ import type { RenderSettings } from './settings'
  */
 export type ToWorker =
   | { type: 'configure'; generation: number; settings: RenderSettings }
-  | { type: 'render'; generation: number; job: BandJob }
+  | { type: 'render-band'; generation: number; job: BandJob }
+  | { type: 'run-chain'; generation: number; job: ChainJob }
 
-export interface FromWorker {
-  type: 'band'
-  generation: number
-  job: BandJob
-  sums: Float32Array
-  splats: Float32Array
-  raysCast: number
-}
+export type FromWorker =
+  | {
+      type: 'band'
+      generation: number
+      job: BandJob
+      sums: Float32Array
+      splats: Float32Array
+      raysCast: number
+    }
+  | { type: 'chain'; generation: number; job: ChainJob; splats: Float32Array; raysCast: number }

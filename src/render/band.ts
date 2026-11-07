@@ -1,4 +1,5 @@
 import type { SampleSink } from '../film/sample-sink'
+import { SplatList } from '../film/splat-list'
 import type { Integrator } from '../integrators/integrator'
 import type { Color } from '../math/color'
 import { Sfc32 } from '../rng/random'
@@ -12,15 +13,12 @@ export interface BandJob {
 }
 
 /**
- * the result of one band, ready to transfer
- *
- * - camera samples: plain RGB triples, row by row
- * - splats: they can land anywhere on the film, but are few - kept as a flat list of
- *   `[pixel index, r, g, b, ...]` instead of a whole-film buffer per band
+ * the result of one band, ready to transfer - the camera samples as plain RGB triples, row by row,
+ * and the splats (which can land anywhere on the film) as a `SplatList`
  */
 export class BandBuffer implements SampleSink {
   readonly sums: Float32Array
-  private readonly splats: number[] = []
+  private readonly splats: SplatList
   raysCast = 0
 
   constructor(
@@ -28,6 +26,7 @@ export class BandBuffer implements SampleSink {
     readonly job: BandJob,
   ) {
     this.sums = new Float32Array(width * job.rowCount * 3)
+    this.splats = new SplatList(width)
   }
 
   addSample(x: number, y: number, radiance: Color): void {
@@ -38,12 +37,11 @@ export class BandBuffer implements SampleSink {
   }
 
   addSplat(filmX: number, filmY: number, radiance: Color): void {
-    const pixel = Math.floor(filmY) * this.width + Math.floor(filmX)
-    this.splats.push(pixel, radiance.r, radiance.g, radiance.b)
+    this.splats.addSplat(filmX, filmY, radiance)
   }
 
   splatList(): Float32Array {
-    return new Float32Array(this.splats)
+    return this.splats.toFloat32Array()
   }
 }
 

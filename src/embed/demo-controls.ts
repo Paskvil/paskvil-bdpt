@@ -6,7 +6,19 @@ import type { BallMaterial, LightSwitches } from '../scene/cornell-box'
 /** fixed render resolution - the canvas is CSS-scaled to fit the element */
 export const RENDER_SIZE = 512
 
-export type IntegratorChoice = 'bdpt' | 'path-tracer'
+export type IntegratorChoice = 'pssmlt' | 'bdpt' | 'path-tracer'
+
+/** chip label, and the full name - on hover and in the PNG strip; in the order of the chips */
+export const INTEGRATOR_NAMES: Record<IntegratorChoice, { short: string; full: string }> = {
+  pssmlt: { short: 'pssmlt', full: 'primary sample space Metropolis light transport' },
+  bdpt: { short: 'bdpt', full: 'bidirectional path tracing' },
+  'path-tracer': { short: 'pt', full: 'path tracing' },
+}
+
+/** PSSMLT runs on top of BDPT, so the BDPT options (MIS, one strategy) apply to both */
+export function usesBdpt(integrator: IntegratorChoice): boolean {
+  return integrator !== 'path-tracer'
+}
 
 /** everything the control panel sets - read from the form in one go, see `readControls` */
 export interface DemoControls {
@@ -35,7 +47,7 @@ export const DEFAULT_ADVANCED: AdvancedControls = {
 }
 
 const BALL_MATERIALS: readonly BallMaterial[] = ['diffuse', 'mirror', 'glass']
-const INTEGRATORS: readonly IntegratorChoice[] = ['bdpt', 'path-tracer']
+const INTEGRATORS = Object.keys(INTEGRATOR_NAMES) as IntegratorChoice[]
 const HEURISTICS: readonly MisHeuristic[] = ['power', 'balance', 'uniform']
 
 /** the form's current state - field names are the ones in template.ts */
@@ -80,9 +92,9 @@ export function toRenderSettings(controls: DemoControls): RenderSettings {
     lights: controls.lights,
     balls: controls.balls,
     integrator:
-      controls.integrator === 'bdpt'
-        ? { kind: 'bdpt', maxDepth, heuristic, only: strategy }
-        : { kind: 'path-tracer', maxDepth },
+      controls.integrator === 'path-tracer'
+        ? { kind: 'path-tracer', maxDepth }
+        : { kind: controls.integrator, maxDepth, heuristic, only: strategy },
   }
 }
 

@@ -40,7 +40,7 @@ export class Film implements SampleSink {
     this.splats[pixel * 3 + 2] += radiance.b
   }
 
-  /** adds splats in the `[pixel index, r, g, b, ...]` layout of `BandBuffer.splatList` */
+  /** adds splats in the `[pixel index, r, g, b, ...]` layout of `SplatList` */
   addSplatList(splatList: Float32Array): void {
     for (let i = 0; i < splatList.length; i += 4) {
       const pixel = splatList[i]
@@ -48,6 +48,14 @@ export class Film implements SampleSink {
       this.splats[pixel * 3 + 1] += splatList[i + 2]
       this.splats[pixel * 3 + 2] += splatList[i + 3]
     }
+  }
+
+  /**
+   * counts samples that put all their light into splats - PSSMLT's mutations: they don't belong to
+   * any pixel, but the splats are averaged over them
+   */
+  addSplatOnlySamples(count: number): void {
+    this.totalSamples += count
   }
 
   /** adds a rendered band - one sample for every pixel of rows `firstRow ..< firstRow + rowCount` */
@@ -76,10 +84,11 @@ export class Film implements SampleSink {
 
   average(x: number, y: number): Color {
     const pixel = y * this.width + x
-    const count = this.counts[pixel]
-    if (count === 0) return Color.BLACK
+    if (this.totalSamples === 0) return Color.BLACK
 
-    const sampleScale = 1 / count
+    // a pixel may have splats but no camera samples of its own (PSSMLT, or a pass in progress)
+    const count = this.counts[pixel]
+    const sampleScale = count > 0 ? 1 / count : 0
     const splatScale = this.counts.length / this.totalSamples
     return new Color(
       this.sums[pixel * 3] * sampleScale + this.splats[pixel * 3] * splatScale,

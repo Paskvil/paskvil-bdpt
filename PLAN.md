@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **milestone 7 done** - all milestones done; the article is live at https://paskvil.com/projects/bdpt/ Sections marked _open_ still need a decision.
+Status: **milestone 8 in progress** - PSSMLT done in the code; README updated, article update pending.
 
 ## goals
 
@@ -97,6 +97,20 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
    - short version in `README.md`
    - long version as an article on paskvil.com (eleventy), next to the embedded renderer
 
+8. PSSMLT on top of BDPT - ~~integrator, chains in the workers, ui (`pssmlt` / `bdpt` / `pt` chips), docs:images support~~ - done; article section pending
+
+## PSSMLT (milestone 8)
+
+- primary sample space MLT (Kelemen et al. 2002), wrapping BDPT from outside - `PrimarySampleSpace` _is_ a `Random`, BDPT is unchanged
+  - the first two numbers pick the pixel; a `RecordingSink` catches everything one BDPT sample puts on the film; target function = its total luminance
+  - expected-value splatting (both the proposed and the current state get their share every step)
+  - `b` (average brightness) from a bootstrap of 50k plain samples; chains start at bootstrap samples picked by brightness - no warm-up
+  - large steps 30%, small steps σ = 0.01 (PBRT's defaults); one stream of numbers, not PBRT's three - simpler, mutations of the camera subpath may shift the light subpath's numbers (still correct, a bit less efficient)
+  - the BDPT options (MIS heuristic, one `(s, t)`) apply - PSSMLT then explores just that strategy's light
+- in the renderer: a second kind of job, "advance chain k by n mutations" (`ChainPlan`); a chain's state lives in its worker, so chain `k` always goes to worker `k mod workers`. the image therefore depends on the number of workers (unlike BDPT / PT); each worker runs the same bootstrap at `configure` (deterministic, ~0.5-3 s)
+- film: mutations count as samples that only splat (`addSplatOnlySamples`) - the splat normalization (`× pixels / samples`) then gives exactly PSSMLT's `b / mutations per pixel`
+- how it compares, mirror balls + top light, equal time (64 s): about the same salt as BDPT around the balls, noise more uneven (dark regions get fewer mutations, the walls look grainier). the box isn't a hard enough scene for MLT to shine
+
 ## gotchas (collected for the docs)
 
 Things that are easy to get wrong when implementing this - noted as they come up:
@@ -109,6 +123,7 @@ Things that are easy to get wrong when implementing this - noted as they come up
 - radiance vs importance: refraction scales radiance by (η_i/η_t)², importance not - but for a closed glass object the factors cancel on every path, so no image test can catch it being wrong (unit-test the BSDF)
 - testing an unbiased renderer: compare against an independent integrator, within standard errors estimated from independent batches - hand-tuned tolerances break on caustics (where the _reference_ is the noisy one); sanity-check the test by sabotage (a 10% darker strategy must fail it)
 - BDPT can't connect through specular-diffuse-specular (SDS) paths - e.g. a caustic seen in a mirror (camera → mirror → diffuse → mirror → light): every connection needs non-delta vertices at both ends, so only `s = 0` (hitting the light by chance) is left - exactly what the path tracer does. Shows up as "salt" on mirror balls; per sample BDPT is still ~4× less noisy there, but each sample costs ~4× the rays (26 vs 6 per sample in the demo), so at _equal time_ the path tracer can look smoother on such paths. Equal samples vs equal time matters for any comparison. (The proper fix - photon mapping / vertex merging - is out of scope)
+- PSSMLT: the furnace test does _not_ catch a broken acceptance probability - every path there is about equally bright, so it hardly matters which ones the chain keeps. the comparison against the path tracer on the Cornell box does (checked by sabotage, as was a 10% wrong `b`)
 - debugging BDPT bias: each `(s, t)` strategy alone is an unbiased estimator - render them one by one for a fixed path length and compare against brute force of exactly that length; the odd one out holds the bug
 
 ## scene
@@ -218,7 +233,6 @@ top view (looking down)                 front view (from the camera)
 
 - timelapse - auto-snapshot each time SPP doubles (1, 2, 4, ... 4k)
 - more sphere materials (glossy / microfacet, ...)
-- Metropolis light transport, as primary sample space MLT (Kelemen et al. 2002) - fits without entangling the code: the integrators only consume a `Random`, so PSSMLT can wrap BDPT from outside, feeding it a mutable vector of "random" numbers and mutating that (+ its own normalization pass); a separate module, BDPT untouched
 
 ## open questions
 

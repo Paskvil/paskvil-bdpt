@@ -55,4 +55,5 @@ Educational bidirectional path tracing demo, TS, shipped as one embeddable bundl
 
 - integrators are validated with a "furnace" test (closed box, every wall emits `Le` and reflects `albedo`, expected `Le / (1 - albedo)`) - catches double-counted light between NEE and emitter hits, wrong pdfs, missing cosines; extend it to BDPT
 
+- PSSMLT (`src/integrators/pssmlt/`) wraps BDPT from outside - keep BDPT unaware of it. its jobs are chain steps, not bands (`render/work-plans.ts`); chain `k` lives in worker `k mod workers`, so the PSSMLT image depends on the worker count - fine, but don't assume PSSMLT renders are reproducible across machines
 - `npm audit` reports moderate issues in `typescript-eslint` deps - dev-only lint tooling, not in the bundle

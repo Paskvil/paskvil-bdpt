@@ -26,6 +26,11 @@ export class Color {
     return new Color(this.r * factor, this.g * factor, this.b * factor)
   }
 
+  /** perceived brightness (Rec. 709 weights) */
+  luminance(): number {
+    return 0.2126 * this.r + 0.7152 * this.g + 0.0722 * this.b
+  }
+
   maxComponent(): number {
     return Math.max(this.r, this.g, this.b)
   }

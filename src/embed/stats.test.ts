@@ -40,15 +40,19 @@ describe('describeSettings', () => {
       heuristic: 'balance' as const,
       strategy: { s: 2, t: 1, weighted: false },
     }
-    expect(describeSettings({ ...CONTROLS, advanced })[2]).toBe(
+    expect(describeSettings({ ...CONTROLS, advanced })[3]).toBe(
       'max depth 4 · mis balance · only (s, t) = (2, 1) unweighted',
     )
   })
 
-  it('lists the integrator, the lights that are on and the materials', () => {
+  it('names the algorithm in full, then the lights that are on and the materials', () => {
     expect(describeSettings(CONTROLS)).toEqual([
-      'bdpt · lights top + right',
+      'bidirectional path tracing',
+      'lights top + right',
       'left ball mirror · right ball glass',
     ])
+    expect(describeSettings({ ...CONTROLS, integrator: 'pssmlt' })[0]).toBe(
+      'primary sample space Metropolis light transport',
+    )
   })
 })

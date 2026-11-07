@@ -1,6 +1,6 @@
 # paskvil-bdpt
 
-bidirectional path tracing (BDPT) in plain TypeScript, as an embeddable `<bdpt-demo>` element - a modified Cornell box that renders progressively in your browser, with a plain path tracer next to it for comparison
+bidirectional path tracing (BDPT) in plain TypeScript, as an embeddable `<bdpt-demo>` element - a modified Cornell box that renders progressively in your browser, with a plain path tracer next to it for comparison, and Metropolis light transport on top of it
 
 written to be read - readability over speed, no GPU, no frameworks. the long version, with pictures and the demo running live: [paskvil.com/projects/bdpt](https://paskvil.com/projects/bdpt/)
 
@@ -43,20 +43,23 @@ fonts aren't bundled - load them on the page (as `@font-face`), or the fallbacks
   - everything else - the two paths joined somewhere in the middle
 - every strategy alone is a complete, unbiased estimator - but each is good at different light. **multiple importance sampling** (MIS) weights them per path, so each path is counted mostly by the strategy most likely to have produced it (Veach's power heuristic by default)
 - the demo's "advanced" section lets you look at a single `(s, t)`, weighted (its share of the image) or unweighted (its own full estimate)
+- **PSSMLT** (primary sample space Metropolis light transport) wraps BDPT without changing it. a BDPT sample is a function of the "random" numbers it uses - PSSMLT hands it a vector of numbers that a Markov chain mutates a little at a time, keeping a change with probability `min(1, new brightness / current brightness)`. so once a chain finds a bright, hard-to-find path it stays around and explores its neighbours. each visit adds `light / brightness × b`, where `b`, the average brightness, comes from a short bootstrap of plain samples
 
 ### where to look in the code
 
-|                                                                              |                                                                                  |
-| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| [`src/integrators/path-tracer.ts`](src/integrators/path-tracer.ts)           | the path tracer with next event estimation - the baseline                        |
-| [`src/integrators/bdpt/subpaths.ts`](src/integrators/bdpt/subpaths.ts)       | camera and light subpaths, one shared random walk                                |
-| [`src/integrators/bdpt/connect.ts`](src/integrators/bdpt/connect.ts)         | one `(s, t)` strategy - joining the two subpaths                                 |
-| [`src/integrators/bdpt/mis.ts`](src/integrators/bdpt/mis.ts)                 | MIS weights, from a flat list of per-vertex densities                            |
-| [`src/integrators/bdpt/path-vertex.ts`](src/integrators/bdpt/path-vertex.ts) | a path vertex - throughput, pdfs in both directions                              |
-| [`src/scene/`](src/scene/)                                                   | shapes, materials (diffuse, mirror, glass), area lights, camera, the Cornell box |
-| [`src/render/`](src/render/)                                                 | web workers rendering bands of rows, progressive accumulation                    |
-| [`src/film/film.ts`](src/film/film.ts)                                       | per-pixel averages + light-tracing splats                                        |
-| [`src/embed/`](src/embed/)                                                   | the `<bdpt-demo>` element and its controls                                       |
+|                                                                                                    |                                                                                  |
+| -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [`src/integrators/path-tracer.ts`](src/integrators/path-tracer.ts)                                 | the path tracer with next event estimation - the baseline                        |
+| [`src/integrators/bdpt/subpaths.ts`](src/integrators/bdpt/subpaths.ts)                             | camera and light subpaths, one shared random walk                                |
+| [`src/integrators/bdpt/connect.ts`](src/integrators/bdpt/connect.ts)                               | one `(s, t)` strategy - joining the two subpaths                                 |
+| [`src/integrators/bdpt/mis.ts`](src/integrators/bdpt/mis.ts)                                       | MIS weights, from a flat list of per-vertex densities                            |
+| [`src/integrators/bdpt/path-vertex.ts`](src/integrators/bdpt/path-vertex.ts)                       | a path vertex - throughput, pdfs in both directions                              |
+| [`src/integrators/pssmlt/pssmlt.ts`](src/integrators/pssmlt/pssmlt.ts)                             | PSSMLT - bootstrap, Markov chains, splatting                                     |
+| [`src/integrators/pssmlt/primary-sample-space.ts`](src/integrators/pssmlt/primary-sample-space.ts) | the mutable "random" numbers - large / small steps, accept / reject              |
+| [`src/scene/`](src/scene/)                                                                         | shapes, materials (diffuse, mirror, glass), area lights, camera, the Cornell box |
+| [`src/render/`](src/render/)                                                                       | web workers rendering bands of rows, progressive accumulation                    |
+| [`src/film/film.ts`](src/film/film.ts)                                                             | per-pixel averages + light-tracing splats                                        |
+| [`src/embed/`](src/embed/)                                                                         | the `<bdpt-demo>` element and its controls                                       |
 
 ### gotchas
 
@@ -75,7 +78,8 @@ the things that cost the most time - or would have, with no tests to catch them:
 ### references
 
 - Eric Veach, [_Robust Monte Carlo Methods for Light Transport Simulation_](https://graphics.stanford.edu/papers/veach_thesis/), PhD thesis, 1997 - ch. 9 (MIS) and 10 (BDPT)
-- Pharr, Jakob, Humphreys, [_Physically Based Rendering_](https://pbr-book.org/), 3rd ed., ch. 16.3 - the structure this follows
+- Pharr, Jakob, Humphreys, [_Physically Based Rendering_](https://pbr-book.org/), 3rd ed., ch. 16.3 (BDPT) and 16.4 (MLT) - the structure this follows
+- Csaba Kelemen et al., [_A Simple and Robust Mutation Strategy for the Metropolis Light Transport Algorithm_](https://doi.org/10.1111/1467-8659.00703), 2002 - PSSMLT
 - [path tracing](https://en.wikipedia.org/wiki/Path_tracing) on Wikipedia
 
 ## development

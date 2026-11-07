@@ -1,4 +1,4 @@
-import { RENDER_SIZE } from './demo-controls'
+import { INTEGRATOR_NAMES, RENDER_SIZE } from './demo-controls'
 
 /**
  * the element's markup: the render on the left, a plain `<form>` of controls on the right
@@ -19,14 +19,23 @@ export const TEMPLATE = `
       ])}
       ${ballChoices('left ball', 'left-ball')}
       ${ballChoices('right ball', 'right-ball')}
-      ${choices('integrator', 'radio', 'integrator', [
-        ['bdpt', 'bdpt', true],
-        ['path-tracer', 'path tracing', false],
-      ])}
+      ${choices(
+        'integrator',
+        'radio',
+        'integrator',
+        Object.entries(INTEGRATOR_NAMES).map(([value, name]) => [
+          value,
+          name.short,
+          value === 'bdpt',
+          name.full,
+        ]),
+      )}
       <label class="field">
         <span class="legend">stop at</span>
         <select name="sample-limit">
           <option value="0" selected>no limit</option>
+          <option value="16">16 spp</option>
+          <option value="64">64 spp</option>
           <option value="256">256 spp</option>
           <option value="1024">1k spp</option>
           <option value="4096">4k spp</option>

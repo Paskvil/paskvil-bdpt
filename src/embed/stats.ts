@@ -1,5 +1,5 @@
 import type { RenderStats } from '../render/parallel-renderer'
-import { DEFAULT_ADVANCED, type DemoControls } from './demo-controls'
+import { DEFAULT_ADVANCED, INTEGRATOR_NAMES, usesBdpt, type DemoControls } from './demo-controls'
 
 export interface Stat {
   /** short label shown on the render - "SPP" */
@@ -16,7 +16,10 @@ export function formatStats(stats: RenderStats, controls: DemoControls): Stat[] 
     {
       label: 'SPP',
       value: stats.samplesPerPixel.toFixed(1),
-      description: 'samples per pixel - camera paths averaged into each pixel so far',
+      description:
+        controls.integrator === 'pssmlt'
+          ? 'samples per pixel - for PSSMLT, mutations per pixel: each a BDPT sample proposed by a Markov chain'
+          : 'samples per pixel - camera paths averaged into each pixel so far',
     },
     {
       label: 'RAYS',
@@ -34,7 +37,7 @@ export function formatStats(stats: RenderStats, controls: DemoControls): Stat[] 
       description: 'render time - since the last change, not counting pauses',
     },
   ]
-  if (controls.integrator === 'bdpt') {
+  if (usesBdpt(controls.integrator)) {
     list.push({
       label: 'LP',
       value: compact(stats.sampleCount),
@@ -45,17 +48,20 @@ export function formatStats(stats: RenderStats, controls: DemoControls): Stat[] 
 }
 
 /**
- * the scene and integrator in short lines - for the PNG strip; a third line lists the advanced
- * settings that differ from the defaults
+ * the algorithm and the scene in short lines - for the PNG strip; one more line lists the
+ * advanced settings that differ from the defaults
  */
 export function describeSettings(controls: DemoControls): string[] {
   const lights = Object.entries(controls.lights)
     .filter(([, on]) => on)
     .map(([name]) => name)
     .join(' + ')
-  const integrator = controls.integrator === 'bdpt' ? 'bdpt' : 'path tracing'
   const { left, right } = controls.balls
-  const lines = [`${integrator} · lights ${lights}`, `left ball ${left} · right ball ${right}`]
+  const lines = [
+    INTEGRATOR_NAMES[controls.integrator].full,
+    `lights ${lights}`,
+    `left ball ${left} · right ball ${right}`,
+  ]
   const advanced = describeAdvanced(controls)
   return advanced ? [...lines, advanced] : lines
 }
@@ -63,7 +69,7 @@ export function describeSettings(controls: DemoControls): string[] {
 function describeAdvanced({ integrator, advanced }: DemoControls): string {
   const parts: string[] = []
   if (advanced.maxDepth !== DEFAULT_ADVANCED.maxDepth) parts.push(`max depth ${advanced.maxDepth}`)
-  if (integrator === 'bdpt') {
+  if (usesBdpt(integrator)) {
     if (advanced.heuristic !== DEFAULT_ADVANCED.heuristic) parts.push(`mis ${advanced.heuristic}`)
     const { strategy } = advanced
     if (strategy) {

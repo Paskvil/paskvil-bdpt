@@ -8,6 +8,8 @@ import type { DocImage } from './images'
 import { encodePng } from './png'
 
 const BAND_ROWS = 16
+/** PSSMLT: one pass = one mutation per pixel, spread over this many chains */
+const CHAINS = 16
 
 /**
  * renders one image the way the browser's workers do - full-width bands, a random seed per
@@ -15,7 +17,7 @@ const BAND_ROWS = 16
  */
 export function renderImage(image: DocImage, outDir: string): { samples: number; seconds: number } {
   const { width, height } = image.settings
-  const { scene, integrator } = createRenderSetup(image.settings)
+  const { scene, integrator, mlt } = createRenderSetup(image.settings)
   const film = new Film(width, height)
   const start = performance.now()
   const seconds = () => (performance.now() - start) / 1000
@@ -24,6 +26,13 @@ export function renderImage(image: DocImage, outDir: string): { samples: number;
 
   let pass = 0
   while (!done(pass)) {
+    if (mlt) {
+      const mutationsPerChain = (width * height) / CHAINS
+      for (let chain = 0; chain < CHAINS; chain++) mlt.runChain(chain, mutationsPerChain, film)
+      film.addSplatOnlySamples(width * height)
+      pass++
+      continue
+    }
     for (let firstRow = 0; firstRow < height; firstRow += BAND_ROWS) {
       const rowCount = Math.min(BAND_ROWS, height - firstRow)
       const band = renderBand(scene, integrator, width, { pass, firstRow, rowCount })

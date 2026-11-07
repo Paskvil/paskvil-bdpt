@@ -1,12 +1,10 @@
 import { Film } from '../film/film'
 import { writeToImageData } from '../film/tone-map'
-import type { BandJob } from './band'
 import type { FromWorker, ToWorker } from './messages'
 import RenderWorker from './render-worker?worker&inline'
 import type { RenderSettings } from './settings'
+import { BandPlan, ChainPlan, type WorkPlan } from './work-plans'
 
-/** rows per job - small enough to keep the image updating smoothly, big enough to keep messaging cheap */
-const BAND_ROWS = 8
 /** jobs queued per worker, so it never sits idle waiting for the next one to arrive */
 const JOBS_PER_WORKER = 2
 
@@ -15,7 +13,7 @@ const MAX_FRAME_GAP_MS = 250
 /** progress of the current render - all reset by `configure` */
 export interface RenderStats {
   samplesPerPixel: number
-  /** camera samples over all pixels = light paths traced (BDPT traces one per sample) */
+  /** samples over all pixels = light paths traced (BDPT and PSSMLT trace one per sample) */
   sampleCount: number
   raysCast: number
   /** time spent rendering, not counting pauses */
@@ -25,19 +23,18 @@ export interface RenderStats {
 /**
  * progressive rendering on a pool of workers
  *
- * - the main thread hands out bands of rows (pass by pass, top to bottom) and adds the results to
- *   the film; the canvas is redrawn at most once per animation frame
+ * - the main thread hands out jobs - bands of rows, or PSSMLT chain steps (see work-plans.ts) -
+ *   and adds the results to the film; the canvas is redrawn at most once per animation frame
  * - `configure` restarts from an empty film; results of earlier settings are dropped (see messages.ts)
- * - with a sample limit, no jobs are handed out beyond that many passes
+ * - with a sample limit, no jobs are handed out beyond that many samples per pixel
  */
 export class ParallelRenderer {
   private readonly context: CanvasRenderingContext2D
   private readonly workers: { worker: Worker; jobsInFlight: number }[]
-  private settings: RenderSettings | null = null
   private film: Film | null = null
   private image: ImageData | null = null
   private generation = 0
-  private nextJob: BandJob = { pass: 0, firstRow: 0, rowCount: BAND_ROWS }
+  private plan: WorkPlan | null = null
   private running = false
   private sampleLimit: number | null = null
   private imageOutdated = false
@@ -82,14 +79,16 @@ export class ParallelRenderer {
 
   /** (re)starts the render from scratch with new settings */
   configure(settings: RenderSettings): void {
-    this.settings = settings
     this.generation++
     this.film = new Film(settings.width, settings.height)
     this.image = this.context.createImageData(settings.width, settings.height)
     // only on change - assigning the size clears the canvas, even to the same value
     if (this.canvas.width !== settings.width) this.canvas.width = settings.width
     if (this.canvas.height !== settings.height) this.canvas.height = settings.height
-    this.nextJob = { pass: 0, firstRow: 0, rowCount: BAND_ROWS }
+    this.plan =
+      settings.integrator.kind === 'pssmlt'
+        ? new ChainPlan(this.workers.length, settings.width * settings.height)
+        : new BandPlan(settings.height)
     this.raysCast = 0
     this.renderTimeMs = 0
 
@@ -121,7 +120,11 @@ export class ParallelRenderer {
   private onResult(entry: { jobsInFlight: number }, message: FromWorker): void {
     if (message.generation !== this.generation || !this.film) return
     entry.jobsInFlight--
-    this.film.addBand(message.job.firstRow, message.job.rowCount, message.sums)
+    if (message.type === 'band') {
+      this.film.addBand(message.job.firstRow, message.job.rowCount, message.sums)
+    } else {
+      this.film.addSplatOnlySamples(message.job.mutations)
+    }
     this.film.addSplatList(message.splats)
     this.raysCast += message.raysCast
     this.imageOutdated = true
@@ -130,32 +133,19 @@ export class ParallelRenderer {
 
   /** tops every worker up to `JOBS_PER_WORKER` jobs */
   private dispatchJobs(): void {
-    if (!this.running || !this.settings) return
-    for (const entry of this.workers) {
-      while (entry.jobsInFlight < JOBS_PER_WORKER && !this.reachedLimit()) {
-        const job = this.takeNextJob(this.settings.height)
-        this.post(entry.worker, { type: 'render', generation: this.generation, job })
+    if (!this.running || !this.plan) return
+    this.workers.forEach((entry, index) => {
+      while (entry.jobsInFlight < JOBS_PER_WORKER) {
+        const job = this.plan?.next(index, this.sampleLimit)
+        if (!job) return
+        this.post(entry.worker, { ...job, generation: this.generation })
         entry.jobsInFlight++
       }
-    }
+    })
   }
 
   private isBusy(): boolean {
     return this.workers.some((entry) => entry.jobsInFlight > 0)
-  }
-
-  private reachedLimit(): boolean {
-    return this.sampleLimit !== null && this.nextJob.pass >= this.sampleLimit
-  }
-
-  private takeNextJob(height: number): BandJob {
-    const job = this.nextJob
-    const nextRow = job.firstRow + job.rowCount
-    this.nextJob =
-      nextRow >= height
-        ? { pass: job.pass + 1, firstRow: 0, rowCount: BAND_ROWS }
-        : { pass: job.pass, firstRow: nextRow, rowCount: Math.min(BAND_ROWS, height - nextRow) }
-    return job
   }
 
   private post(worker: Worker, message: ToWorker): void {
