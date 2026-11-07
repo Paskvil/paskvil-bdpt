@@ -1,7 +1,7 @@
 import { INTEGRATOR_NAMES, RENDER_SIZE } from './demo-controls'
 
 const SHADE_DESCRIPTION =
-  'a white plate just under the top light - its light gets out only by bouncing through a thin slit'
+  'a white plate just under the top light - its light gets out only by bouncing through a thin slit (the bulb is 3× brighter)'
 
 /**
  * the element's markup: the render on the left, a plain `<form>` of controls on the right
@@ -17,9 +17,9 @@ export const TEMPLATE = `
     <form class="controls">
       ${group('lights', [
         chip('checkbox', 'light', 'top', 'top', true),
-        chip('checkbox', 'light', 'left', 'left', true),
-        chip('checkbox', 'light', 'right', 'right', true),
-        chip('checkbox', 'top-shade', 'on', 'shade', false, SHADE_DESCRIPTION),
+        chip('checkbox', 'top-shade', 'on', 'shade', false, SHADE_DESCRIPTION, 'small'),
+        chip('checkbox', 'light', 'left', 'left', false),
+        chip('checkbox', 'light', 'right', 'right', false),
       ])}
       ${ballChoices('left ball', 'left-ball')}
       ${ballChoices('right ball', 'right-ball')}
@@ -146,9 +146,11 @@ function chip(
   label: string,
   checked: boolean,
   title?: string,
+  variant?: 'small',
 ): string {
+  const classes = variant ? `chip ${variant}` : 'chip'
   return `
-    <label class="chip"${title ? ` title="${title}"` : ''}>
+    <label class="${classes}"${title ? ` title="${title}"` : ''}>
       <input type="${type}" name="${name}" value="${value}"${checked ? ' checked' : ''} />
       <span>${label}</span>
     </label>`

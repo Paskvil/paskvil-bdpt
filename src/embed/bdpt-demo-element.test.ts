@@ -27,9 +27,9 @@ describe('<bdpt-demo>', () => {
     expect(canvas.height).toBe(RENDER_SIZE)
   })
 
-  it('starts with all lights on, diffuse balls, BDPT, no sample limit', () => {
+  it('starts with the top light only, diffuse balls, BDPT, no sample limit', () => {
     expect(readControls(createElement().form)).toEqual({
-      lights: { top: true, left: true, right: true },
+      lights: { top: true, left: false, right: false },
       topShade: false,
       balls: { left: 'diffuse', right: 'diffuse' },
       integrator: 'bdpt',
@@ -41,7 +41,7 @@ describe('<bdpt-demo>', () => {
 
   it('reads the controls as set', () => {
     const element = createElement()
-    input(element, 'light', 'left').checked = false
+    input(element, 'light', 'right').checked = true
     input(element, 'top-shade', 'on').checked = true
     input(element, 'right-ball', 'glass').checked = true
     input(element, 'integrator', 'path-tracer').checked = true

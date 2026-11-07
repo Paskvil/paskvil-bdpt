@@ -73,4 +73,11 @@ describe('createCornellBox', () => {
       false,
     )
   })
+
+  it('makes the shaded top light brighter, the others stay as they are', () => {
+    const [plainTop] = scene(ALL_ON, false).lights
+    const [shadedTop, side] = scene(ALL_ON, true).lights
+    expect(shadedTop.radiance.r).toBeCloseTo(3 * plainTop.radiance.r)
+    expect(side.radiance).toEqual(plainTop.radiance)
+  })
 })

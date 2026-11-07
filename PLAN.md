@@ -109,6 +109,8 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
   - the BDPT options (MIS heuristic, one `(s, t)`) apply - PSSMLT then explores just that strategy's light
 - in the renderer: a second kind of job, "advance chain k by n mutations" (`ChainPlan`); a chain's state lives in its worker, so chain `k` always goes to worker `k mod workers`. the image therefore depends on the number of workers (unlike BDPT / PT); each worker runs the same bootstrap at `configure` (deterministic, ~0.5-3 s)
 - film: mutations count as samples that only splat (`addSplatOnlySamples`) - the splat normalization (`× pixels / samples`) then gives exactly PSSMLT's `b / mutations per pixel`
+- the shade (`topShade`): 1.5× the top light's size, 0.03 below it, white on both sides; the shaded bulb is 3× brighter (the shade keeps ~80% of the light in). hard for the path tracer, not for BDPT - its connections reach through the slit; PSSMLT gets within ~2× of BDPT's noise at the tightest slits tried, but those leave the room almost black. decided: present that honestly, no hunt for a scene where MLT wins - the idea of mutating paths is the point, and its blotchy noise looks natural (like film grain / sensor noise in the dark)
+- defaults: only the top light on - all three make the lighting almost ambient, flattering even plain path tracing
 - how it compares, mirror balls + top light, equal time (64 s): about the same salt as BDPT around the balls, noise more uneven (dark regions get fewer mutations, the walls look grainier). the box isn't a hard enough scene for MLT to shine
 
 ## gotchas (collected for the docs)

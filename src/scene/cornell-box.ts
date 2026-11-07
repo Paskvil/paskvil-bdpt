@@ -50,7 +50,7 @@ const GLASS = new Glass(1.5)
 /** light panels only emit - they don't reflect anything */
 const LIGHT_SURFACE = new Diffuse(Color.BLACK)
 
-/** same radiance on every panel - smaller panels give off less light */
+/** same radiance on every panel - smaller panels give off less light (except a shaded top light) */
 const LIGHT_RADIANCE = Color.gray(10)
 const TOP_LIGHT_SIZE = 0.25
 const SIDE_LIGHT_SIZE = 0.125
@@ -64,6 +64,8 @@ const LIGHT_OFFSET = 1e-3
  */
 const SHADE_SIZE = 1.5 * TOP_LIGHT_SIZE
 const SHADE_GAP = 0.03
+/** a lampshade hides a strong bulb - the shade keeps ~80% of the light in, this makes up for part of it */
+const SHADED_LIGHT_BOOST = 3
 
 const BALL_RADIUS = 1 / 6
 
@@ -75,7 +77,7 @@ export function createCornellBox(options: CornellBoxOptions): Scene {
   const objects = [
     ...walls(),
     ...balls(options.balls),
-    ...lights(options.lights),
+    ...lights(options.lights, options.topShade),
     // a shade without its light would just hang there
     ...(options.topShade && options.lights.top ? [shade()] : []),
   ]
@@ -129,13 +131,14 @@ function ballMaterial(choice: BallMaterial, ownColor: Material): Material {
   }
 }
 
-function lights(switches: LightSwitches): SceneObject[] {
+function lights(switches: LightSwitches, topShade: boolean): SceneObject[] {
   const top = TOP_LIGHT_SIZE
   const side = SIDE_LIGHT_SIZE
-  const panels: { name: string; on: boolean; quad: Quad }[] = [
+  const panels: { name: string; on: boolean; quad: Quad; radiance?: Color }[] = [
     {
       name: 'top light',
       on: switches.top,
+      radiance: topShade ? LIGHT_RADIANCE.scale(SHADED_LIGHT_BOOST) : LIGHT_RADIANCE,
       quad: Quad.centered(vec3(0.5, 1 - LIGHT_OFFSET, 0.5), vec3(top, 0, 0), vec3(0, 0, top)),
     },
     ...[0.25, 0.75].map((height) => ({
@@ -156,7 +159,7 @@ function lights(switches: LightSwitches): SceneObject[] {
       name: panel.name,
       shape: panel.quad,
       material: LIGHT_SURFACE,
-      light: new AreaLight(panel.quad, LIGHT_RADIANCE),
+      light: new AreaLight(panel.quad, panel.radiance ?? LIGHT_RADIANCE),
     }))
 }
 

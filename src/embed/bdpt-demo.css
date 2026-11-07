@@ -186,6 +186,17 @@ input[type='number'] {
   display: none;
 }
 
+/* the shade chip sits right after "top", smaller - it belongs to that light */
+.chip.small {
+  margin-left: -0.15rem;
+  align-self: center;
+  font-size: 0.6875rem;
+}
+
+.chip.small span {
+  padding: 0.1rem 0.35rem;
+}
+
 /* the shade only does something while the top light is on */
 .chips:has(input[name='light'][value='top']:not(:checked)) input[name='top-shade'] + span {
   opacity: 0.4;
