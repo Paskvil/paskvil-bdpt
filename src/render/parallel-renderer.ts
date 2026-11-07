@@ -16,6 +16,7 @@ const JOBS_PER_WORKER = 2
  * - the main thread hands out bands of rows (pass by pass, top to bottom) and adds the results to
  *   the film; the canvas is redrawn at most once per animation frame
  * - `configure` restarts from an empty film; results of earlier settings are dropped (see messages.ts)
+ * - with a sample limit, no jobs are handed out beyond that many passes
  */
 export class ParallelRenderer {
   private readonly context: CanvasRenderingContext2D
@@ -26,6 +27,7 @@ export class ParallelRenderer {
   private generation = 0
   private nextJob: BandJob = { pass: 0, firstRow: 0, rowCount: BAND_ROWS }
   private running = false
+  private sampleLimit: number | null = null
   private imageOutdated = false
   private frameRequest: number | null = null
 
@@ -48,14 +50,21 @@ export class ParallelRenderer {
     return this.film?.samplesPerPixel() ?? 0
   }
 
+  /** stop after this many samples per pixel - `null` renders on indefinitely */
+  setSampleLimit(limit: number | null): void {
+    this.sampleLimit = limit
+    this.dispatchJobs()
+  }
+
   /** (re)starts the render from scratch with new settings */
   configure(settings: RenderSettings): void {
     this.settings = settings
     this.generation++
     this.film = new Film(settings.width, settings.height)
     this.image = this.context.createImageData(settings.width, settings.height)
-    this.canvas.width = settings.width
-    this.canvas.height = settings.height
+    // only on change - assigning the size clears the canvas, even to the same value
+    if (this.canvas.width !== settings.width) this.canvas.width = settings.width
+    if (this.canvas.height !== settings.height) this.canvas.height = settings.height
     this.nextJob = { pass: 0, firstRow: 0, rowCount: BAND_ROWS }
 
     for (const entry of this.workers) {
@@ -96,12 +105,16 @@ export class ParallelRenderer {
   private dispatchJobs(): void {
     if (!this.running || !this.settings) return
     for (const entry of this.workers) {
-      while (entry.jobsInFlight < JOBS_PER_WORKER) {
+      while (entry.jobsInFlight < JOBS_PER_WORKER && !this.reachedLimit()) {
         const job = this.takeNextJob(this.settings.height)
         this.post(entry.worker, { type: 'render', generation: this.generation, job })
         entry.jobsInFlight++
       }
     }
+  }
+
+  private reachedLimit(): boolean {
+    return this.sampleLimit !== null && this.nextJob.pass >= this.sampleLimit
   }
 
   private takeNextJob(height: number): BandJob {

@@ -14,6 +14,11 @@ Educational bidirectional path tracing demo, TS, shipped as one embeddable bundl
 - `npm run dev | test | lint | typecheck | build` - run test + lint + typecheck before committing
 - tests next to the code as `*.test.ts`; DOM tests opt into jsdom per file (`// @vitest-environment jsdom`), the rest runs in node
 - styles: plain `.css` files imported with `?inline`, applied via `adoptedStyleSheets` in the shadow root
+  - look = paskvil.com (Jo's site): Prussian blue, gold accent, Martian Mono, all lowercase, 1px rules, square corners, no shadows; theming via `--bdpt-*` custom properties (listed in README)
+- UI: the controls are a plain `<form>` of real inputs (chips = styled radios / checkboxes), read in one go by `readControls` (`FormData`) - keep it that way, no framework
+  - only changes to the `RenderSettings` part restart the render (compared as JSON); the sample limit / pause don't
+  - rendering runs only when not paused, on screen (`IntersectionObserver`) and the tab is visible
+- `demo/index.html` mimics a paskvil.com page (fonts from Google Fonts there - dev page only)
 - workers: imported with `?worker&inline` so the bundle stays a single file
   - each worker builds its own scene from `RenderSettings` (plain data); jobs are row bands, results are transferred `Float32Array`s
   - random seed per (pass, row) - the image doesn't depend on which worker rendered what; keep it that way

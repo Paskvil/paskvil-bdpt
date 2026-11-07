@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **milestone 5 done** (mirror + glass) - next: the interface. Sections marked _open_ still need a decision.
+Status: **milestone 6 in progress** - basic controls done; next: stats overlay, then the advanced section. Sections marked _open_ still need a decision.
 
 ## goals
 
@@ -71,6 +71,8 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
 ```
 
 - custom element with Shadow DOM - style isolation from the host page
+- look: paskvil.com's palette and fonts by default (Prussian blue, gold accent, Martian Mono, lowercase), every colour / font overridable by `--bdpt-*` custom properties on the element
+- fonts aren't bundled - the host page's `@font-face`s work inside the shadow DOM, otherwise system fallbacks
 - thin wrapper over a JS API (`createRenderer(canvas, options)`) for people who want control
 - attributes / events - _open_, after the UI is settled
 
@@ -88,6 +90,9 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
 4. ~~BDPT - all strategies, MIS, diffuse only; validated against the path tracer~~ - done
 5. ~~specular - mirror + glass, caustics scene~~ - done
 6. interface - controls, strategy visualization, PT vs BDPT comparison
+   - ~~basic controls (lights, materials, integrator, sample limit, pause, png download, off-screen / hidden-tab pausing)~~ - done
+   - stats overlay + stats strip in the png
+   - advanced section
 
 ## scene
 

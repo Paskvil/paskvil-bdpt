@@ -4,21 +4,44 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>bdpt demo</title>
+    <!-- dev page only, roughly how paskvil.com frames its content - none of this is in the bundle -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,100..800&family=Schibsted+Grotesk:wght@400..900&display=swap"
+    />
     <script type="module" src="../src/index.ts"></script>
     <style>
       body {
         margin: 0;
-        padding: 16px;
-        background: #f4f4f4;
-        font-family: system-ui, sans-serif;
+        padding: 2.5rem 1.25rem;
+        background: #00111c;
+        color: #88aaff;
+        font:
+          400 1.0625rem/1.6 'Schibsted Grotesk',
+          system-ui,
+          sans-serif;
       }
-      bdpt-demo {
-        max-width: 960px;
+      main {
+        max-width: 52rem;
         margin: 0 auto;
+      }
+      h1 {
+        font:
+          500 2rem/1.15 'Martian Mono',
+          monospace;
+        color: #e0e7f5;
+        letter-spacing: -0.035em;
       }
     </style>
   </head>
   <body>
-    <bdpt-demo></bdpt-demo>
+    <main>
+      <h1>bidirectional path tracing</h1>
+      <p>some text above the demo, as it would be on a page</p>
+      <bdpt-demo></bdpt-demo>
+      <p>and some text below it</p>
+    </main>
   </body>
 </html>
