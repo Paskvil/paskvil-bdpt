@@ -110,6 +110,46 @@ Modified Cornell box - single fixed scene, parameterized by the controls below.
   - material set is meant to grow later - materials behind one `Material` interface, so adding one is a new file + a dropdown entry
 - camera: classic Cornell framing, square aspect - fixed
 
+### geometry (proposed - under review)
+
+Unit box, right-handed, _y up_:
+
+- `x` left → right - red wall at `x = 0`, green wall at `x = 1`
+- `y` floor → ceiling - floor at `y = 0`, ceiling at `y = 1`
+- `z` back → front - back wall at `z = 0`, front is open at `z = 1`, the camera looks down `-z`
+
+| object       | where                                                       | size                                                   |
+| ------------ | ----------------------------------------------------------- | ------------------------------------------------------ |
+| left ball    | centre `(0.30, 1/6, 0.35)` - resting on the floor           | radius `1/6` (diameter 1/3 of the box)                 |
+| right ball   | centre `(0.68, 0.45, 0.65)` - bottom ~0.28 above the floor  | radius `1/6`                                           |
+| top light    | ceiling, centred at `(0.5, 1, 0.5)`                         | `0.25 × 0.25`                                          |
+| left lights  | left wall, `z = 0.5`, centres at `y = 0.25` and `y = 0.75`  | `0.15 × 0.15` each                                     |
+| right lights | right wall, `y = 0.5`, centres at `z = 0.25` and `z = 0.75` | `0.15 × 0.15` each                                     |
+| camera       | `(0.5, 0.5, 2.4)` looking at `-z`                           | vertical FOV 40° - the open front just fills the frame |
+
+```
+top view (looking down)                 front view (from the camera)
+
+        x=0       back      x=1                 y=1 +----[ top ]----+
+  z=0    +-------------------+                      |               |
+         |                   |               0.75   L2              |
+  0.25   |                   R1                     |               |
+         |   (L)             |               0.50   |          (R)  R1 R2
+  0.50  L1 L2   [top]        |                      |               |
+         |            (R)    |               0.25   L1              |
+  0.75   |                   R2                     |  (L)          |
+         |                   |                  y=0 +---------------+
+  z=1    +----- open --------+                     x=0             x=1
+                 camera @ z=2.4
+```
+
+- light panels sit `1e-3` off their wall - avoids the panel and the wall being coplanar
+- emission: neutral white, each _group_ has the same total power (side panels are smaller, so they're brighter) - toggling keeps the image brightness similar
+- reflectances (linear RGB)
+  - white `0.73`, red `(0.65, 0.05, 0.05)`, green `(0.12, 0.45, 0.15)` - the classic Cornell values
+  - light blue `(0.45, 0.60, 0.85)`, light peach `(0.90, 0.62, 0.48)`
+  - mirror reflectance `0.95`, glass IOR `1.5`
+
 ## UI
 
 ```
