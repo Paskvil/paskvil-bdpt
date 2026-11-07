@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **design discussion** - setup agreed, scene + interface next. Sections marked *open* still need a decision.
+Status: **design discussion** - setup agreed, scene + UI drafted, details open. Sections marked *open* still need a decision.
 
 ## goals
 
@@ -67,12 +67,12 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
 
 ```html
 <script type="module" src="https://…/bdpt.js"></script>
-<bdpt-demo scene="cornell-caustics" width="512" height="512"></bdpt-demo>
+<bdpt-demo></bdpt-demo>
 ```
 
 - custom element with Shadow DOM - style isolation from the host page
 - thin wrapper over a JS API (`createRenderer(canvas, options)`) for people who want control
-- details (controls, attributes, events) - next discussion
+- attributes / events - *open*, after the UI is settled
 
 ## testing
 
@@ -91,9 +91,48 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
 
 ## scene
 
-A "modified Cornell box" - layout and materials to be described by Jo *(pending)*
+Modified Cornell box - single fixed scene, parameterized by the controls below.
 
-## open questions
+- walls: classic red (left) / white (back, floor, ceiling) / green (right)
+- two spheres instead of the usual boxes
+  - left ball - further back, resting on the floor; default diffuse *light blue*
+  - right ball - closer to the camera, floating mid-air; default diffuse *light peach*
+- lights: top, left, right - each can be toggled, at least one always on (the last one on can't be switched off)
+  - shape / size / exact placement - *open*
+- sphere materials, chosen per sphere
+  - diffuse - the ball's own colour
+  - mirror (perfect specular)
+  - glass (dielectric, refraction + Fresnel)
+  - material set is meant to grow later - materials behind one `Material` interface, so adding one is a new file + a dropdown entry
+- camera: classic Cornell framing, square aspect - fixed
 
-- scene layout + material set - pending (see above)
-- interface - after the scene
+## UI
+
+```
++----------------------------+-----------------+
+|                            | lights          |
+|                            |  [x] top        |
+|        render (LHS)        |  [x] left       |
+|                            |  [ ] right      |
+|                            | left ball  [▾]  |
+|                            | right ball [▾]  |
+|                  stats --> | integrator [▾]  |
++----------------------------+ [download png]  |
+                             +-----------------+
+```
+
+- LHS: the progressive render, restarts from zero on any parameter change
+- RHS: controls
+  - light toggles (top / left / right)
+  - material per ball (diffuse / mirror / glass)
+  - integrator: path tracing / BDPT
+  - download current snapshot as PNG
+- stats overlay, bottom-right of the render: rays cast, samples per pixel, elapsed time, ... - final list *open*
+- render resolution fixed at 512x512, the canvas is CSS-scaled to fit the element (aspect preserved)
+
+- light shape / size / placement (top / left / right)
+- stats list
+- narrow embeds - stack controls under the render below some width?
+- pause when off-screen / stop after N samples per pixel?
+- path tracer variant - naive vs with next event estimation
+- extra controls - MIS on/off, per-strategy `(s, t)` view, max path depth?
