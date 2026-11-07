@@ -2,7 +2,7 @@
 
 bidirectional path tracing (BDPT) in plain TypeScript, as an embeddable `<bdpt-demo>` element - a modified Cornell box that renders progressively in your browser, with a plain path tracer next to it for comparison
 
-written to be read - readability over speed, no GPU, no frameworks. the long version, with pictures, lives on [paskvil.com](https://paskvil.com/) _(link to follow)_
+written to be read - readability over speed, no GPU, no frameworks. the long version, with pictures and the demo running live: [paskvil.com/projects/bdpt](https://paskvil.com/projects/bdpt/)
 
 ## embedding
 

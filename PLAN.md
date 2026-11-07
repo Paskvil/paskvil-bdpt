@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **milestone 7 in progress** - README done, the long version is in paskvil-static (`src/projects/bdpt.md`), waiting for the site build / deploy. Sections marked _open_ still need a decision.
+Status: **milestone 7 done** - all milestones done; the article is live at https://paskvil.com/projects/bdpt/ Sections marked _open_ still need a decision.
 
 ## goals
 
@@ -93,7 +93,7 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
    - ~~basic controls (lights, materials, integrator, sample limit, pause, png download, off-screen / hidden-tab pausing)~~ - done
    - ~~stats overlay + stats strip in the png~~ - done
    - ~~advanced section~~ - done: max depth 1-20, MIS power / balance / uniform, a single `(s, t)` weighted or unweighted
-7. documentation - outline of the algorithms, references into the code, gotchas (see below)
+7. ~~documentation - outline of the algorithms, references into the code, gotchas (see below)~~ - done, live at https://paskvil.com/projects/bdpt/
    - short version in `README.md`
    - long version as an article on paskvil.com (eleventy), next to the embedded renderer
 
