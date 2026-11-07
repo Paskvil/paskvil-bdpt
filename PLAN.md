@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **milestone 4 done** (BDPT, diffuse only) - next: mirror + glass. Sections marked _open_ still need a decision.
+Status: **milestone 5 done** (mirror + glass) - next: the interface. Sections marked _open_ still need a decision.
 
 ## goals
 
@@ -86,7 +86,7 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
 2. ~~math + scene + path tracer - Cornell box renders progressively on the main thread~~ - done (diffuse only)
 3. ~~workers - same, parallel, UI stays responsive~~ - done
 4. ~~BDPT - all strategies, MIS, diffuse only; validated against the path tracer~~ - done
-5. specular - mirror + glass, caustics scene
+5. ~~specular - mirror + glass, caustics scene~~ - done
 6. interface - controls, strategy visualization, PT vs BDPT comparison
 
 ## scene

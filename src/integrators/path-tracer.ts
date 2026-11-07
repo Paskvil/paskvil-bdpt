@@ -58,7 +58,7 @@ export class PathTracer implements Integrator {
         radiance = radiance.add(throughput.mul(this.directLight(hit, wo, random)))
       }
 
-      const scattered = material.sample(wo, hit.normal, random)
+      const scattered = material.sample(wo, hit.normal, random, 'radiance')
       if (!scattered || scattered.pdf === 0) break
 
       const cosine = Math.abs(scattered.direction.dot(hit.normal))

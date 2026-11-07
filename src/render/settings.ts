@@ -2,7 +2,7 @@ import { Bdpt } from '../integrators/bdpt/bdpt'
 import type { MisHeuristic } from '../integrators/bdpt/mis'
 import type { Integrator } from '../integrators/integrator'
 import { PathTracer } from '../integrators/path-tracer'
-import { createCornellBox, type LightSwitches } from '../scene/cornell-box'
+import { createCornellBox, type BallMaterials, type LightSwitches } from '../scene/cornell-box'
 import type { Scene } from '../scene/scene'
 
 /**
@@ -13,6 +13,7 @@ export interface RenderSettings {
   width: number
   height: number
   lights: LightSwitches
+  balls: BallMaterials
   integrator: IntegratorSettings
 }
 

@@ -3,6 +3,9 @@ import { Vec3, vec3 } from '../math/vec3'
 import { AreaLight } from './area-light'
 import { Camera } from './camera'
 import { Diffuse } from './materials/diffuse'
+import { Glass } from './materials/glass'
+import type { Material } from './materials/material'
+import { Mirror } from './materials/mirror'
 import { Scene, type SceneObject } from './scene'
 import { Quad } from './shapes/quad'
 import { Sphere } from './shapes/sphere'
@@ -20,8 +23,17 @@ export interface LightSwitches {
   right: boolean
 }
 
+/** what a ball is made of - "diffuse" means the ball's own colour */
+export type BallMaterial = 'diffuse' | 'mirror' | 'glass'
+
+export interface BallMaterials {
+  left: BallMaterial
+  right: BallMaterial
+}
+
 export interface CornellBoxOptions {
   lights: LightSwitches
+  balls: BallMaterials
   width: number
   height: number
 }
@@ -31,6 +43,8 @@ const RED = new Diffuse(new Color(0.65, 0.05, 0.05))
 const GREEN = new Diffuse(new Color(0.12, 0.45, 0.15))
 const LIGHT_BLUE = new Diffuse(new Color(0.45, 0.6, 0.85))
 const LIGHT_PEACH = new Diffuse(new Color(0.9, 0.62, 0.48))
+const MIRROR = new Mirror(Color.gray(0.95))
+const GLASS = new Glass(1.5)
 /** light panels only emit - they don't reflect anything */
 const LIGHT_SURFACE = new Diffuse(Color.BLACK)
 
@@ -48,7 +62,7 @@ const CAMERA_FOV_DEGREES = 40
 const CAMERA_DISTANCE = 2.37
 
 export function createCornellBox(options: CornellBoxOptions): Scene {
-  const objects = [...walls(), ...balls(), ...lights(options.lights)]
+  const objects = [...walls(), ...balls(options.balls), ...lights(options.lights)]
   const camera = new Camera(
     vec3(0.5, 0.5, CAMERA_DISTANCE),
     vec3(0.5, 0.5, 0),
@@ -73,19 +87,30 @@ function walls(): SceneObject[] {
   ]
 }
 
-function balls(): SceneObject[] {
+function balls(materials: BallMaterials): SceneObject[] {
   return [
     {
       name: 'left ball',
       shape: new Sphere(vec3(0.3, BALL_RADIUS, 0.35), BALL_RADIUS),
-      material: LIGHT_BLUE,
+      material: ballMaterial(materials.left, LIGHT_BLUE),
     },
     {
       name: 'right ball',
       shape: new Sphere(vec3(0.68, 0.45, 0.65), BALL_RADIUS),
-      material: LIGHT_PEACH,
+      material: ballMaterial(materials.right, LIGHT_PEACH),
     },
   ]
+}
+
+function ballMaterial(choice: BallMaterial, ownColor: Material): Material {
+  switch (choice) {
+    case 'diffuse':
+      return ownColor
+    case 'mirror':
+      return MIRROR
+    case 'glass':
+      return GLASS
+  }
 }
 
 function lights(switches: LightSwitches): SceneObject[] {

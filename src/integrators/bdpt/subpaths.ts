@@ -2,7 +2,8 @@ import { Color } from '../../math/color'
 import { Ray } from '../../math/ray'
 import type { Random } from '../../rng/random'
 import type { Scene } from '../../scene/scene'
-import { PathVertex, type Transport } from './path-vertex'
+import type { Transport } from '../../scene/materials/material'
+import { PathVertex } from './path-vertex'
 
 /**
  * camera subpath through film position (filmX, filmY): the camera, then up to `maxVertices - 1`
@@ -89,7 +90,7 @@ function randomWalk(
 
     const { material } = hit.object
     const towardPrevious = ray.direction.negated()
-    const scattered = material.sample(towardPrevious, hit.normal, random)
+    const scattered = material.sample(towardPrevious, hit.normal, random, transport)
     if (!scattered || scattered.pdf === 0) return
 
     const cosine = Math.abs(scattered.direction.dot(hit.normal))

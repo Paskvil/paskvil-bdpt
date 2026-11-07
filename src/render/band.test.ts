@@ -6,6 +6,7 @@ const SETTINGS: RenderSettings = {
   width: 16,
   height: 16,
   lights: { top: true, left: true, right: true },
+  balls: { left: 'diffuse', right: 'diffuse' },
   integrator: { kind: 'path-tracer', maxDepth: 5 },
 }
 

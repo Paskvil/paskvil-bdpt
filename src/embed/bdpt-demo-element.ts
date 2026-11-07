@@ -9,6 +9,7 @@ const DEFAULT_SETTINGS: RenderSettings = {
   width: RENDER_SIZE,
   height: RENDER_SIZE,
   lights: { top: true, left: true, right: true },
+  balls: { left: 'diffuse', right: 'diffuse' },
   integrator: { kind: 'bdpt', maxDepth: 10, heuristic: 'power' },
 }
 

@@ -2,14 +2,8 @@ import { Color } from '../../math/color'
 import type { Vec3 } from '../../math/vec3'
 import type { AreaLight } from '../../scene/area-light'
 import type { Camera } from '../../scene/camera'
-import type { Material } from '../../scene/materials/material'
+import type { Material, Transport } from '../../scene/materials/material'
 import type { Hit } from '../../scene/scene'
-
-/**
- * which quantity a subpath carries - matters for BSDFs that aren't symmetric (refraction):
- * camera subpaths carry radiance towards the camera, light subpaths carry importance towards lights
- */
-export type Transport = 'radiance' | 'importance'
 
 type VertexKind =
   | { type: 'camera'; camera: Camera }

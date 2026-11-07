@@ -16,6 +16,12 @@ export interface BsdfSample {
 }
 
 /**
+ * which quantity a path carries - matters for BSDFs that aren't symmetric (refraction):
+ * paths from the camera carry radiance, paths from a light carry importance (PBRT's TransportMode)
+ */
+export type Transport = 'radiance' | 'importance'
+
+/**
  * how light scatters at a surface (the BSDF)
  *
  * conventions (as in PBRT): all directions are unit, in world space, and point *away* from the
@@ -27,7 +33,11 @@ export interface Material {
 
   evaluate(wo: Vec3, wi: Vec3, normal: Vec3): Color
 
-  sample(wo: Vec3, normal: Vec3, random: Random): BsdfSample | null
+  /**
+   * picks a new direction for a path that arrived from `wo` - for a camera path that's where the
+   * light goes, for a light path where it came from; `transport` says which
+   */
+  sample(wo: Vec3, normal: Vec3, random: Random, transport: Transport): BsdfSample | null
 
   /** pdf (per solid angle) of `sample` picking `wi` */
   pdf(wo: Vec3, wi: Vec3, normal: Vec3): number

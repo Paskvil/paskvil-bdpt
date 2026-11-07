@@ -8,7 +8,12 @@ const ALL_ON = { top: true, left: true, right: true }
 const BOX_CENTER = vec3(0.5, 0.5, 0.5)
 
 function scene(lights = ALL_ON) {
-  return createCornellBox({ lights, width: 64, height: 64 })
+  return createCornellBox({
+    lights,
+    balls: { left: 'diffuse', right: 'diffuse' },
+    width: 64,
+    height: 64,
+  })
 }
 
 describe('createCornellBox', () => {
