@@ -2,14 +2,14 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **design discussion** - setup agreed, scene + UI drafted, details open. Sections marked *open* still need a decision.
+Status: **milestone 1 done** (scaffolding) - next: math + scene + path tracer. Sections marked _open_ still need a decision.
 
 ## goals
 
 - readable, well-factored code over raw speed - the code itself is part of the demo
 - one embeddable artifact: drop a `<script>` + a tag on any page, no framework required
 - progressive rendering - the image refines live, so it's interesting to watch
-- show *why* BDPT matters: scenes where plain path tracing struggles (small/occluded lights, caustics)
+- show _why_ BDPT matters: scenes where plain path tracing struggles (small/occluded lights, caustics)
 
 ## non-goals (for now)
 
@@ -34,7 +34,7 @@ demo/          dev page (Vite) - not part of the bundle
 ```
 
 - `integrators/` depends only on `scene/` + `math/` - no DOM, no workers - so it's unit-testable in Node
-- the path tracer exists as a baseline for side-by-side comparison *and* as a correctness check (both must converge to the same image)
+- the path tracer exists as a baseline for side-by-side comparison _and_ as a correctness check (both must converge to the same image)
 
 ## algorithm
 
@@ -61,7 +61,7 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
   - `dist/bdpt.js` - ES module
   - `dist/bdpt.iife.js` - classic `<script>` for plain HTML pages
 - not published as a package - the public repo is the reference, the built bundle is what gets embedded elsewhere
-- demo page on GitHub Pages *(open, nice-to-have)*
+- demo page on GitHub Pages _(open, nice-to-have)_
 
 ## embedding (sketch - to be designed)
 
@@ -72,7 +72,7 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
 
 - custom element with Shadow DOM - style isolation from the host page
 - thin wrapper over a JS API (`createRenderer(canvas, options)`) for people who want control
-- attributes / events - *open*, after the UI is settled
+- attributes / events - _open_, after the UI is settled
 
 ## testing
 
@@ -82,7 +82,7 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
 
 ## milestones
 
-1. scaffolding - Vite/TS/Vitest, empty custom element showing a canvas, build produces the bundle
+1. ~~scaffolding - Vite/TS/Vitest, empty custom element showing a canvas, build produces the bundle~~ - done
 2. math + scene + path tracer - Cornell box renders progressively on the main thread
 3. workers - same, parallel, UI stays responsive
 4. BDPT - all strategies, MIS, diffuse only; validated against the path tracer
@@ -95,8 +95,8 @@ Modified Cornell box - single fixed scene, parameterized by the controls below.
 
 - walls: classic red (left) / white (back, floor, ceiling) / green (right)
 - two spheres instead of the usual boxes
-  - left ball - further back, resting on the floor; default diffuse *light blue*
-  - right ball - closer to the camera, floating mid-air; default diffuse *light peach*
+  - left ball - further back, resting on the floor; default diffuse _light blue_
+  - right ball - closer to the camera, floating mid-air; default diffuse _light peach_
 - lights: three groups - top, left, right - each can be toggled, at least one group always on (the last one on can't be switched off)
   - all area lights (quads), no point lights
   - top - the usual ceiling panel
@@ -144,6 +144,17 @@ Modified Cornell box - single fixed scene, parameterized by the controls below.
 - narrow embeds - controls stack under the render (CSS container query)
 - rendering pauses when the element is scrolled out of view (`IntersectionObserver`), resumes when back - unless paused manually
 
+- PNG export
+  - optional "include stats" checkbox next to the download button, on by default
+  - stats go in a strip _below_ the 512x512 image (PNG ~512x544), never over it - frames stay aligned for timelapses
+  - strip shows integrator, lights, ball materials, non-default advanced settings + the stats
+  - filename carries the sample count, zero-padded so it sorts - e.g. `bdpt-0256spp.png`
+
+## future
+
+- timelapse - auto-snapshot each time SPP doubles (1, 2, 4, ... 4k)
+- more sphere materials (glossy / microfacet, ...)
+
 ## open questions
 
-- PNG export with stats burned in (for timelapses) - in discussion
+- attributes / events of `<bdpt-demo>` - once the controls exist

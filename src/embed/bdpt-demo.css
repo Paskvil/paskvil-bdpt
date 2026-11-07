@@ -1,0 +1,36 @@
+:host {
+  display: block;
+  container-type: inline-size;
+  font:
+    13px/1.4 system-ui,
+    sans-serif;
+  color: #ddd;
+  background: #1b1b1f;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 14rem;
+}
+
+/* narrow embeds - controls go under the render */
+@container (max-width: 36rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.viewport {
+  position: relative;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.controls {
+  padding: 0.75rem;
+}
