@@ -97,8 +97,12 @@ Modified Cornell box - single fixed scene, parameterized by the controls below.
 - two spheres instead of the usual boxes
   - left ball - further back, resting on the floor; default diffuse *light blue*
   - right ball - closer to the camera, floating mid-air; default diffuse *light peach*
-- lights: top, left, right - each can be toggled, at least one always on (the last one on can't be switched off)
-  - shape / size / exact placement - *open*
+- lights: three groups - top, left, right - each can be toggled, at least one group always on (the last one on can't be switched off)
+  - all area lights (quads), no point lights
+  - top - the usual ceiling panel
+  - left - 2 smaller panels on the left wall, on its vertical centre line, at 25% and 75% of the wall height
+  - right - 2 smaller panels on the right wall, on its horizontal centre line, at 25% and 75% of the wall depth
+  - the panel pairs are spaced to produce clearly separate multiple shadows
 - sphere materials, chosen per sphere
   - diffuse - the ball's own colour
   - mirror (perfect specular)
@@ -125,14 +129,21 @@ Modified Cornell box - single fixed scene, parameterized by the controls below.
 - RHS: controls
   - light toggles (top / left / right)
   - material per ball (diffuse / mirror / glass)
-  - integrator: path tracing / BDPT
+  - integrator: path tracing (with next event estimation) / BDPT
+    - no plain PT - it would not converge before the user gets bored
+  - pause / play - freeze the current state for inspection
+  - SPP cap - switch (+ value) to stop rendering at N samples per pixel
   - download current snapshot as PNG
-- stats overlay, bottom-right of the render: rays cast, samples per pixel, elapsed time, ... - final list *open*
+  - collapsible "advanced" section
+    - MIS: power / balance / off
+    - strategy view: full image, or the contribution of a single `(s, t)` strategy
+    - max path depth
+- stats overlay, bottom-right of the render - abbreviations only, full name + short description on hover
+  - `SPP` samples per pixel, `RAYS` rays cast, `R/S` rays per second, `TIME` elapsed, BDPT only: `LP` light paths
 - render resolution fixed at 512x512, the canvas is CSS-scaled to fit the element (aspect preserved)
+- narrow embeds - controls stack under the render (CSS container query)
+- rendering pauses when the element is scrolled out of view (`IntersectionObserver`), resumes when back - unless paused manually
 
-- light shape / size / placement (top / left / right)
-- stats list
-- narrow embeds - stack controls under the render below some width?
-- pause when off-screen / stop after N samples per pixel?
-- path tracer variant - naive vs with next event estimation
-- extra controls - MIS on/off, per-strategy `(s, t)` view, max path depth?
+## open questions
+
+- PNG export with stats burned in (for timelapses) - in discussion
