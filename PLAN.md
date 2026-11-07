@@ -233,6 +233,7 @@ top view (looking down)                 front view (from the camera)
 
 - timelapse - auto-snapshot each time SPP doubles (1, 2, 4, ... 4k)
 - more sphere materials (glossy / microfacet, ...)
+- PSSMLT's mutation settings in "advanced" (large step probability, small step size) - left out on purpose for now: they change how fast it converges, which is hard to judge by eye, unlike `(s, t)` - and the panel would get crowded
 
 ## open questions
 
