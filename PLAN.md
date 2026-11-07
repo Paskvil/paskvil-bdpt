@@ -93,6 +93,22 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
    - ~~basic controls (lights, materials, integrator, sample limit, pause, png download, off-screen / hidden-tab pausing)~~ - done
    - stats overlay + stats strip in the png
    - advanced section
+7. documentation - outline of the algorithms, references into the code, gotchas (see below)
+   - short version in `README.md`
+   - long version as an article on paskvil.com (eleventy), next to the embedded renderer
+
+## gotchas (collected for the docs)
+
+Things that are easy to get wrong when implementing this - noted as they come up:
+
+- shadow / connection rays: nudge _both_ ends off their surfaces and aim between the nudged points (`Ray.between`) - nudging only the origin shifts the whole line sideways, so near the far end it can pass inside the target's own object (BDPT silently lost ~20% of NEE light on the floating ball)
+- MIS must count exactly the strategies the integrator evaluates - PBRT never evaluates `(s, t) = (1, 1)`, so MIS mustn't include it either (lights seen directly came out at half brightness)
+- the light-tracing (`t = 1`) splats are normalized by the _total_ number of light paths, not per pixel - they land anywhere on the film
+- the pinhole camera's importance / pdf are normalized over the whole film (1 / (A cos⁴θ), 1 / (A cos³θ)), so a camera ray's throughput is exactly 1
+- `maxDepth` must mean the same thing in both integrators (max bounces) - NEE at the last hit adds one more bounce, easy to miss when comparing them
+- radiance vs importance: refraction scales radiance by (η_i/η_t)², importance not - but for a closed glass object the factors cancel on every path, so no image test can catch it being wrong (unit-test the BSDF)
+- testing an unbiased renderer: compare against an independent integrator, within standard errors estimated from independent batches - hand-tuned tolerances break on caustics (where the _reference_ is the noisy one); sanity-check the test by sabotage (a 10% darker strategy must fail it)
+- debugging BDPT bias: each `(s, t)` strategy alone is an unbiased estimator - render them one by one for a fixed path length and compare against brute force of exactly that length; the odd one out holds the bug
 
 ## scene
 
@@ -201,6 +217,7 @@ top view (looking down)                 front view (from the camera)
 
 - timelapse - auto-snapshot each time SPP doubles (1, 2, 4, ... 4k)
 - more sphere materials (glossy / microfacet, ...)
+- Metropolis light transport, as primary sample space MLT (Kelemen et al. 2002) - fits without entangling the code: the integrators only consume a `Random`, so PSSMLT can wrap BDPT from outside, feeding it a mutable vector of "random" numbers and mutating that (+ its own normalization pass); a separate module, BDPT untouched
 
 ## open questions
 
