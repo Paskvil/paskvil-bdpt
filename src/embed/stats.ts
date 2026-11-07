@@ -1,5 +1,5 @@
 import type { RenderStats } from '../render/parallel-renderer'
-import type { DemoControls } from './demo-controls'
+import { DEFAULT_ADVANCED, type DemoControls } from './demo-controls'
 
 export interface Stat {
   /** short label shown on the render - "SPP" */
@@ -44,15 +44,34 @@ export function formatStats(stats: RenderStats, controls: DemoControls): Stat[] 
   return list
 }
 
-/** the scene and integrator in two short lines - for the PNG strip */
-export function describeSettings(controls: DemoControls): [string, string] {
+/**
+ * the scene and integrator in short lines - for the PNG strip; a third line lists the advanced
+ * settings that differ from the defaults
+ */
+export function describeSettings(controls: DemoControls): string[] {
   const lights = Object.entries(controls.lights)
     .filter(([, on]) => on)
     .map(([name]) => name)
     .join(' + ')
   const integrator = controls.integrator === 'bdpt' ? 'bdpt' : 'path tracing'
   const { left, right } = controls.balls
-  return [`${integrator} · lights ${lights}`, `left ball ${left} · right ball ${right}`]
+  const lines = [`${integrator} · lights ${lights}`, `left ball ${left} · right ball ${right}`]
+  const advanced = describeAdvanced(controls)
+  return advanced ? [...lines, advanced] : lines
+}
+
+function describeAdvanced({ integrator, advanced }: DemoControls): string {
+  const parts: string[] = []
+  if (advanced.maxDepth !== DEFAULT_ADVANCED.maxDepth) parts.push(`max depth ${advanced.maxDepth}`)
+  if (integrator === 'bdpt') {
+    if (advanced.heuristic !== DEFAULT_ADVANCED.heuristic) parts.push(`mis ${advanced.heuristic}`)
+    const { strategy } = advanced
+    if (strategy) {
+      const weighting = strategy.weighted ? 'weighted' : 'unweighted'
+      parts.push(`only (s, t) = (${strategy.s}, ${strategy.t}) ${weighting}`)
+    }
+  }
+  return parts.join(' · ')
 }
 
 /** 12.3k, 4.56M, 1.2G */

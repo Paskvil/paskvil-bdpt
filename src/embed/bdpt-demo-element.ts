@@ -43,6 +43,7 @@ export class BdptDemoElement extends HTMLElement {
 
     this.controls = readControls(this.form)
     this.form.addEventListener('change', this.onControlsChange)
+    this.form.addEventListener('input', this.onControlsInput)
     this.pauseButton.addEventListener('click', this.onPauseClick)
     downloadButton.addEventListener('click', this.onDownloadClick)
   }
@@ -72,6 +73,15 @@ export class BdptDemoElement extends HTMLElement {
     keepOneLightOn(this.form, event.target)
     this.controls = readControls(this.form)
     this.applyControls()
+  }
+
+  /** live feedback while dragging the max depth slider - the render restarts on release */
+  private readonly onControlsInput = (event: Event): void => {
+    const target = event.target
+    if (target instanceof HTMLInputElement && target.name === 'max-depth') {
+      const display = this.form.querySelector('output[name="max-depth-value"]')
+      if (display) display.textContent = target.value
+    }
   }
 
   /** restarts the render only when the image itself changes - not e.g. for a new sample limit */

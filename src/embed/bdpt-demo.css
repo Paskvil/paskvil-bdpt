@@ -135,6 +135,57 @@ button[name='pause'][aria-pressed='true'] {
   color: var(--bdpt-accent);
 }
 
+/* advanced section */
+
+.advanced summary {
+  color: var(--bdpt-text-dim);
+  cursor: pointer;
+}
+
+.advanced[open] summary {
+  margin-bottom: 0.75rem;
+}
+
+.advanced > * + * {
+  margin-top: 0.75rem;
+}
+
+.bdpt-only > * + * {
+  margin-top: 0.75rem;
+}
+
+output {
+  color: var(--bdpt-text-strong);
+}
+
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--bdpt-accent);
+}
+
+.strategy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+}
+
+input[type='number'] {
+  width: 3.5em;
+  padding: 0.15rem 0.3rem;
+  border: 1px solid var(--bdpt-rule);
+  border-radius: 2px;
+  background: none;
+  color: var(--bdpt-text-strong);
+  font: inherit;
+}
+
+/* show only what applies - pure CSS, the inputs stay in the form (and in FormData) */
+.controls:has(input[name='integrator'][value='path-tracer']:checked) .bdpt-only,
+.advanced:has(input[name='strategy-view'][value='all']:checked) .strategy {
+  display: none;
+}
+
 /* stats - over the bottom-right corner of the render */
 
 .stats {

@@ -74,6 +74,26 @@ describe('Bdpt', () => {
     })
   })
 
+  // light that bounced exactly k times has radiance Le · albedo^k in the furnace - and each
+  // strategy alone, unweighted, estimates all light along paths of its length (bounces = s + t - 2)
+  it.each([
+    [0, 3],
+    [1, 2],
+    [2, 1],
+    [0, 4],
+    [2, 2],
+    [3, 1],
+  ])('strategy (%i, %i) alone, unweighted, estimates its path length in a furnace', (s, t) => {
+    const size = 4
+    const albedo = 0.5
+    const scene = createFurnace(1, albedo, size)
+    const only = { s, t, weighted: false }
+    const film = render(new Bdpt(scene, { maxDepth: 30, heuristic: 'power', only }), size, 300, 9)
+
+    const [red] = blockMean(film, 0, 0, size)
+    expect(red).toBeCloseTo(albedo ** (s + t - 2), 1)
+  })
+
   /**
    * both integrators render the scene in independent batches; per block of pixels, the spread
    * between batches estimates the standard error of the mean - the two means must agree within

@@ -6,8 +6,9 @@ import { misWeight, type MisHeuristic, type MisVertex } from './mis'
 import { PathVertex } from './path-vertex'
 
 export interface Contribution {
-  /** MIS-weighted radiance */
+  /** radiance as this strategy alone estimates it - multiply by `misWeight` for its share */
   radiance: Color
+  misWeight: number
   /** set for t = 1 only: where the path is seen on the film - the radiance goes there as a splat */
   filmPosition: { x: number; y: number } | null
 }
@@ -71,7 +72,7 @@ export function connect(
   if (s > 0 && lightEnd && !isVisible(scene, lightEnd, cameraEnd)) return null
 
   const misPath = buildMisPath(scene, lightPath, cameraPath, s, t, lightEnd, cameraEnd)
-  return { radiance: radiance.scale(misWeight(misPath, s, heuristic)), filmPosition }
+  return { radiance, misWeight: misWeight(misPath, s, heuristic), filmPosition }
 }
 
 /** t = 1: the camera as a vertex seen from `lightEnd`, with beta = We / pdf */

@@ -1,4 +1,4 @@
-import { Bdpt } from '../integrators/bdpt/bdpt'
+import { Bdpt, type StrategyView } from '../integrators/bdpt/bdpt'
 import type { MisHeuristic } from '../integrators/bdpt/mis'
 import type { Integrator } from '../integrators/integrator'
 import { PathTracer } from '../integrators/path-tracer'
@@ -19,7 +19,7 @@ export interface RenderSettings {
 
 export type IntegratorSettings =
   | { kind: 'path-tracer'; maxDepth: number }
-  | { kind: 'bdpt'; maxDepth: number; heuristic: MisHeuristic }
+  | { kind: 'bdpt'; maxDepth: number; heuristic: MisHeuristic; only: StrategyView | null }
 
 export interface RenderSetup {
   scene: Scene
@@ -36,6 +36,6 @@ function createIntegrator(scene: Scene, settings: IntegratorSettings): Integrato
     case 'path-tracer':
       return new PathTracer(scene, { maxDepth: settings.maxDepth })
     case 'bdpt':
-      return new Bdpt(scene, { maxDepth: settings.maxDepth, heuristic: settings.heuristic })
+      return new Bdpt(scene, settings)
   }
 }

@@ -18,6 +18,8 @@ Educational bidirectional path tracing demo, TS, shipped as one embeddable bundl
 - UI: the controls are a plain `<form>` of real inputs (chips = styled radios / checkboxes), read in one go by `readControls` (`FormData`) - keep it that way, no framework
   - only changes to the `RenderSettings` part restart the render (compared as JSON); the sample limit / pause don't
   - rendering runs only when not paused, on screen (`IntersectionObserver`) and the tab is visible
+  - options that don't apply are _hidden_ with CSS `:has()`, never `disabled` - disabled inputs drop out of `FormData`
+  - MIS "off" is labelled `uniform` on purpose: equal weights for the usable strategies (an unweighted sum would count every path several times)
 - `demo/index.html` mimics a paskvil.com page (fonts from Google Fonts there - dev page only)
 - workers: imported with `?worker&inline` so the bundle stays a single file
   - each worker builds its own scene from `RenderSettings` (plain data); jobs are row bands, results are transferred `Float32Array`s

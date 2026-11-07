@@ -1,3 +1,5 @@
+import type { StrategyView } from '../integrators/bdpt/bdpt'
+import type { MisHeuristic } from '../integrators/bdpt/mis'
 import type { RenderSettings } from '../render/settings'
 import type { BallMaterial, LightSwitches } from '../scene/cornell-box'
 
@@ -15,10 +17,26 @@ export interface DemoControls {
   sampleLimit: number | null
   /** add a strip with the settings and stats under the downloaded image */
   pngWithStats: boolean
+  advanced: AdvancedControls
+}
+
+/** the "advanced" section - heuristic and strategy apply to BDPT only */
+export interface AdvancedControls {
+  maxDepth: number
+  heuristic: MisHeuristic
+  /** a single (s, t) strategy to show - `null` shows the full image */
+  strategy: StrategyView | null
+}
+
+export const DEFAULT_ADVANCED: AdvancedControls = {
+  maxDepth: 10,
+  heuristic: 'power',
+  strategy: null,
 }
 
 const BALL_MATERIALS: readonly BallMaterial[] = ['diffuse', 'mirror', 'glass']
 const INTEGRATORS: readonly IntegratorChoice[] = ['bdpt', 'path-tracer']
+const HEURISTICS: readonly MisHeuristic[] = ['power', 'balance', 'uniform']
 
 /** the form's current state - field names are the ones in template.ts */
 export function readControls(form: HTMLFormElement): DemoControls {
@@ -38,12 +56,24 @@ export function readControls(form: HTMLFormElement): DemoControls {
     integrator: oneOf(data.get('integrator'), INTEGRATORS),
     sampleLimit: limit > 0 ? limit : null,
     pngWithStats: data.has('png-with-stats'),
+    advanced: {
+      maxDepth: Number(data.get('max-depth')),
+      heuristic: oneOf(data.get('heuristic'), HEURISTICS),
+      strategy:
+        data.get('strategy-view') === 'one'
+          ? {
+              s: Number(data.get('s')),
+              t: Number(data.get('t')),
+              weighted: data.get('weighting') === 'weighted',
+            }
+          : null,
+    },
   }
 }
 
 /** the part of the controls that defines the image - changing it restarts the render */
 export function toRenderSettings(controls: DemoControls): RenderSettings {
-  const maxDepth = 10
+  const { maxDepth, heuristic, strategy } = controls.advanced
   return {
     width: RENDER_SIZE,
     height: RENDER_SIZE,
@@ -51,7 +81,7 @@ export function toRenderSettings(controls: DemoControls): RenderSettings {
     balls: controls.balls,
     integrator:
       controls.integrator === 'bdpt'
-        ? { kind: 'bdpt', maxDepth, heuristic: 'power' }
+        ? { kind: 'bdpt', maxDepth, heuristic, only: strategy }
         : { kind: 'path-tracer', maxDepth },
   }
 }

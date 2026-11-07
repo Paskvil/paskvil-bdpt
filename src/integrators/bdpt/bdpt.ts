@@ -11,6 +11,21 @@ export interface BdptOptions {
   /** max number of bounces - same meaning as for the path tracer */
   maxDepth: number
   heuristic: MisHeuristic
+  /** render a single strategy instead of all of them - for looking inside the algorithm */
+  only?: StrategyView | null
+}
+
+/**
+ * one (s, t) strategy on its own
+ *
+ * - weighted: its MIS-weighted share - all such images summed over (s, t) give the full image
+ * - unweighted: its own estimate of all light along paths with s + t vertices - noisier or
+ *   smoother than its neighbours', which is exactly what MIS exploits
+ */
+export interface StrategyView {
+  s: number
+  t: number
+  weighted: boolean
 }
 
 /**
@@ -29,7 +44,7 @@ export class Bdpt implements Integrator {
   ) {}
 
   renderSample(x: number, y: number, sink: SampleSink, random: Random): void {
-    const { maxDepth, heuristic } = this.options
+    const { maxDepth, heuristic, only } = this.options
     // a path with `maxDepth` bounces has `maxDepth + 2` vertices, camera and light included
     const cameraPath = generateCameraSubpath(
       this.scene,
@@ -45,15 +60,18 @@ export class Bdpt implements Integrator {
       for (let s = 0; s <= lightPath.length; s++) {
         const bounces = s + t - 2
         if (bounces < 0 || bounces > maxDepth || (s === 1 && t === 1)) continue
+        if (only && (s !== only.s || t !== only.t)) continue
 
         const contribution = connect(this.scene, lightPath, cameraPath, s, t, heuristic, random)
         if (!contribution) continue
 
+        const weight = only && !only.weighted ? 1 : contribution.misWeight
+        const weighted = contribution.radiance.scale(weight)
         if (contribution.filmPosition) {
           const { x: filmX, y: filmY } = contribution.filmPosition
-          sink.addSplat(filmX, filmY, contribution.radiance)
+          sink.addSplat(filmX, filmY, weighted)
         } else {
-          radiance = radiance.add(contribution.radiance)
+          radiance = radiance.add(weighted)
         }
       }
     }

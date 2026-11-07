@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { DemoControls } from './demo-controls'
+import { DEFAULT_ADVANCED, type DemoControls } from './demo-controls'
 import { describeSettings, formatStats } from './stats'
 
 const CONTROLS: DemoControls = {
@@ -8,6 +8,7 @@ const CONTROLS: DemoControls = {
   integrator: 'bdpt',
   sampleLimit: null,
   pngWithStats: true,
+  advanced: DEFAULT_ADVANCED,
 }
 const STATS = {
   samplesPerPixel: 12.25,
@@ -33,6 +34,17 @@ describe('formatStats', () => {
 })
 
 describe('describeSettings', () => {
+  it('adds a line for advanced settings that differ from the defaults', () => {
+    const advanced = {
+      maxDepth: 4,
+      heuristic: 'balance' as const,
+      strategy: { s: 2, t: 1, weighted: false },
+    }
+    expect(describeSettings({ ...CONTROLS, advanced })[2]).toBe(
+      'max depth 4 · mis balance · only (s, t) = (2, 1) unweighted',
+    )
+  })
+
   it('lists the integrator, the lights that are on and the materials', () => {
     expect(describeSettings(CONTROLS)).toEqual([
       'bdpt · lights top + right',
