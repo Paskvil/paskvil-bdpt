@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **milestone 8 in progress** - PSSMLT done in the code; README updated, article update pending.
+Status: **milestone 8 done** - PSSMLT, the shade, the article section; the site update waits for Jo's deploy.
 
 ## goals
 
@@ -97,7 +97,7 @@ Decision: **CPU only, in TS, Web Workers for parallelism.** No WebGL/WebGPU back
    - short version in `README.md`
    - long version as an article on paskvil.com (eleventy), next to the embedded renderer
 
-8. PSSMLT on top of BDPT - ~~integrator, chains in the workers, ui (`pssmlt` / `bdpt` / `pt` chips), docs:images support~~ - done; article section pending
+8. ~~PSSMLT on top of BDPT - integrator, chains in the workers, ui (`pssmlt` / `bdpt` / `pt` chips), the shade, docs:images support, article section~~ - done
 
 ## PSSMLT (milestone 8)
 
