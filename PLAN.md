@@ -2,7 +2,7 @@
 
 Educational bidirectional path tracing (BDPT) demo in TypeScript, shipped as an embeddable bundle.
 
-Status: **milestone 6 done** (interface) - next: documentation. Sections marked _open_ still need a decision.
+Status: **milestone 7 in progress** - README done, the long version is in paskvil-static (`src/projects/bdpt.md`), waiting for the site build / deploy. Sections marked _open_ still need a decision.
 
 ## goals
 

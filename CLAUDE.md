@@ -38,6 +38,9 @@ Educational bidirectional path tracing demo, TS, shipped as one embeddable bundl
 
 ## notes
 
+- the long write-up lives in the site repo `/home/josef/Projects/mine/paskvil-static` (Eleventy, another Claude session "paskvil-static" owns it): this repo writes only `src/projects/bdpt.md`, `src/assets/js/bdpt.js` (= `dist/bdpt.iife.js`, recopy on every rebuild) and `src/assets/img/bdpt/`; never commit there - ping that session instead
+  - site voice: lowercase, no closing full stops, `-` for asides, `<details>` + blank lines around fences for collapsible code, `<figure>` (or `figure.pair`) with width/height, no KaTeX
+
 - new implementation gotchas go into PLAN.md "gotchas (collected for the docs)" as they come up - they feed the README / site article
 
 - shadow / connection rays must use `Ray.between` (nudges _both_ ends off their surfaces), never `Ray.spawn` + shortened distance - `spawn` shifts the whole line sideways, so near the far end it can pass inside the target's own object (cost BDPT 20% of the NEE light on the floating ball before it was found)
